@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap");
+
+.page-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-position: center;
+  background-size: 80px 80px;
+}
+
+.mesh-bg {
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(56, 189, 248, 0.14), transparent 25%),
+    radial-gradient(circle at 80% 15%, rgba(168, 85, 247, 0.16), transparent 22%),
+    radial-gradient(circle at 50% 75%, rgba(59, 130, 246, 0.12), transparent 28%);
+}

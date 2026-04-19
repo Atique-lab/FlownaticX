@@ -1,10 +1,80 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-* {
-  will-change: transform;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface text-white antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(59, 130, 246, 0.2), transparent 28%),
+      radial-gradient(circle at top right, rgba(139, 92, 246, 0.16), transparent 30%),
+      linear-gradient(180deg, #060816 0%, #030712 100%);
+    min-width: 320px;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  button {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface;
+  }
+
+  ::selection {
+    background: rgba(96, 165, 250, 0.28);
+  }
 }
 
-img {
-  will-change: transform;
+@layer utilities {
+  .glass-panel {
+    @apply border border-white/10 bg-white/5 shadow-panel backdrop-blur-xl;
+  }
+
+  .surface-line {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .surface-line::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.28),
+      transparent
+    );
+    opacity: 0.8;
+  }
+
+  .noise-overlay {
+    position: relative;
+  }
+
+  .noise-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(rgba(255, 255, 255, 0.08) 0.6px, transparent 0.6px);
+    background-size: 16px 16px;
+    mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 85%);
+    opacity: 0.16;
+  }
 }
