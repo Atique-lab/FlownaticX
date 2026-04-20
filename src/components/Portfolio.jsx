@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import TiltCard from "./TiltCard";
-import ScrollReveal from "./ScrollReveal";
+import ScrollReveal, { cardVariant, premiumEase, staggerContainer, viewportOnce } from "./ScrollReveal";
 
 import p1 from "../assets/projects/project1.jpg";
 import p2 from "../assets/projects/project2.jpg";
@@ -35,7 +35,6 @@ export default function Portfolio() {
       prev === 0 ? items.length - 1 : prev - 1
     );
 
-  // Keyboard controls
   useEffect(() => {
     const handleKey = (e) => {
       if (currentIndex === null) return;
@@ -50,77 +49,96 @@ export default function Portfolio() {
 
   return (
     <ScrollReveal>
-      <section className="py-20 bg-black px-6 text-white">
-        <h2 className="text-4xl text-center font-bold mb-12">
+      <section className="px-6 py-20 text-white">
+        <h2 className="section-heading mb-12 text-center text-4xl font-bold">
           Featured Projects
         </h2>
 
-        {/* GRID */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3"
+        >
           {items.map((item, i) => (
-            <TiltCard key={i}>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                onClick={() => openPopup(i)}
-                className="relative overflow-hidden rounded-xl group h-[300px] cursor-pointer"
-              >
-                <img
-                  src={item.img}
-                  alt=""
-                  className="w-full h-full object-cover object-center"
-                />
+            <motion.div key={item.title} variants={cardVariant}>
+              <TiltCard>
+                <motion.div
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.28, ease: premiumEase }}
+                  onClick={() => openPopup(i)}
+                  className="glass-panel premium-surface premium-card-hover group relative h-[300px] cursor-pointer overflow-hidden rounded-[1.75rem]"
+                >
+                  <motion.img
+                    src={item.img}
+                    alt={item.title}
+                    whileHover={{ scale: 1.06 }}
+                    transition={{ duration: 0.45, ease: premiumEase }}
+                    className="h-full w-full object-cover object-center"
+                  />
 
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                  <p className="text-lg font-semibold">{item.title}</p>
-                </div>
-              </motion.div>
-            </TiltCard>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/18 to-cyan-500/10 opacity-0 transition duration-300 group-hover:opacity-100" />
+
+                  <div className="absolute inset-x-0 bottom-0 translate-y-5 px-6 pb-6 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    <p className="text-lg font-semibold">{item.title}</p>
+                  </div>
+                </motion.div>
+              </TiltCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        {/* POPUP SLIDER */}
         {currentIndex !== null && (
-          <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-[999]">
-
-            {/* IMAGE */}
-            <motion.img
-              key={items[currentIndex].img}
-              src={items[currentIndex].img}
-              alt=""
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="max-w-[90%] max-h-[80%] rounded-xl"
-            />
-
-            {/* TITLE */}
-            <p className="absolute bottom-10 text-white text-lg">
-              {items[currentIndex].title}
-            </p>
-
-            {/* CLOSE */}
-            <button
-              onClick={closePopup}
-              className="absolute top-6 right-6 text-white text-3xl"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22, ease: premiumEase }}
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/95 px-6 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.34, ease: premiumEase }}
+              className="glass-panel premium-surface relative w-full max-w-5xl rounded-[2rem] p-6 md:p-10"
             >
-              ✕
-            </button>
+              <motion.img
+                key={items[currentIndex].img}
+                src={items[currentIndex].img}
+                alt={items[currentIndex].title}
+                initial={{ scale: 0.965, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.38, ease: premiumEase }}
+                className="max-h-[70vh] w-full rounded-[1.5rem] object-cover"
+              />
 
-            {/* PREV */}
-            <button
-              onClick={prevSlide}
-              className="absolute left-6 text-white text-4xl"
-            >
-              ‹
-            </button>
+              <p className="mt-5 text-center text-lg text-slate-100">
+                {items[currentIndex].title}
+              </p>
 
-            {/* NEXT */}
-            <button
-              onClick={nextSlide}
-              className="absolute right-6 text-white text-4xl"
-            >
-              ›
-            </button>
-          </div>
+              <button
+                onClick={closePopup}
+                className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-900/80 text-2xl text-white transition hover:bg-slate-800"
+              >
+                {"\u2715"}
+              </button>
+
+              <button
+                onClick={prevSlide}
+                className="absolute left-5 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-900/80 text-4xl text-white transition hover:bg-slate-800"
+              >
+                {"\u2039"}
+              </button>
+
+              <button
+                onClick={nextSlide}
+                className="absolute right-5 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-900/80 text-4xl text-white transition hover:bg-slate-800"
+              >
+                {"\u203A"}
+              </button>
+            </motion.div>
+          </motion.div>
         )}
       </section>
     </ScrollReveal>

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import ScrollReveal, { cardVariant, staggerContainer, viewportOnce } from "./ScrollReveal";
 
 const stats = [
   { value: "50+", label: "Projects" },
@@ -8,23 +9,29 @@ const stats = [
 
 export default function Stats() {
   return (
-    <section className="py-16 bg-black text-white">
-      <div className="flex justify-center gap-12 flex-wrap">
+    <ScrollReveal>
+      <section className="bg-transparent px-6 py-16 text-white">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="glass-panel mx-auto flex max-w-6xl flex-wrap justify-center gap-12 rounded-[2rem] px-8 py-10"
+        >
         {stats.map((stat, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.2 }}
+            variants={cardVariant}
             className="text-center"
           >
-            <h2 className="text-4xl font-bold text-purple-400">
+            <h2 className="section-heading text-4xl font-bold">
               {stat.value}
             </h2>
-            <p className="text-gray-400">{stat.label}</p>
+            <p className="mt-2 text-slate-400">{stat.label}</p>
           </motion.div>
         ))}
-      </div>
-    </section>
+        </motion.div>
+      </section>
+    </ScrollReveal>
   );
 }

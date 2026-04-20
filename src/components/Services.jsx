@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import TiltCard from "./TiltCard";
-import ScrollReveal from "./ScrollReveal";
+import ScrollReveal, { cardVariant, premiumEase, staggerContainer, viewportOnce } from "./ScrollReveal";
 
 const services = [
   {
@@ -20,27 +20,39 @@ const services = [
 export default function Services() {
   return (
     <ScrollReveal>
-    <section className="py-20 px-6 bg-black text-white">
-      <h2 className="text-4xl text-center font-bold mb-12">
-        Services That Bring Customers
-      </h2>
+      <section className="px-6 py-20 text-white">
+        <h2 className="section-heading mb-12 text-center text-4xl font-bold">
+          Services That Bring Customers
+        </h2>
 
-      {/* GRID */}
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {services.map((s, i) => (
-          <TiltCard key={i}>
-            <motion.div
-              whileHover={{ y: -12 }}
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 
-              hover:shadow-[0_0_50px_rgba(139,92,246,0.5)] transition"
-            >
-              <h3 className="text-xl font-semibold">{s.title}</h3>
-              <p className="text-gray-400 mt-2">{s.desc}</p>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3"
+        >
+          {services.map((s, i) => (
+            <motion.div key={i} variants={cardVariant}>
+              <TiltCard>
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.28, ease: premiumEase }}
+                  className="glass-panel premium-surface premium-card-hover rounded-[1.75rem] p-7"
+                >
+                  <motion.div
+                    whileHover={{ width: 72 }}
+                    transition={{ duration: 0.28, ease: premiumEase }}
+                    className="mb-5 h-1.5 w-14 rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-violet-500"
+                  />
+                  <h3 className="text-xl font-semibold">{s.title}</h3>
+                  <p className="mt-3 text-slate-400">{s.desc}</p>
+                </motion.div>
+              </TiltCard>
             </motion.div>
-          </TiltCard>
-        ))}
-      </div>
-    </section>
+          ))}
+        </motion.div>
+      </section>
     </ScrollReveal>
   );
 }

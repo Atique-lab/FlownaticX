@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import ScrollReveal, { cardVariant, staggerContainer, viewportOnce } from "./ScrollReveal";
 
 const businesses = [
   "Institutes",
@@ -13,22 +14,31 @@ const businesses = [
 
 export default function BusinessTypes() {
   return (
-    <section className="py-16 bg-black text-white px-6 text-center">
-      <h2 className="text-3xl font-bold mb-8">
-        Built for Every Growing Business
-      </h2>
+    <ScrollReveal>
+      <section className="px-6 py-16 text-center text-white">
+        <h2 className="section-heading mb-8 text-3xl font-bold">
+          Built for Every Growing Business
+        </h2>
 
-      <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
-        {businesses.map((b, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.1 }}
-            className="px-6 py-2 rounded-full bg-white/10 border border-white/10"
-          >
-            {b}
-          </motion.div>
-        ))}
-      </div>
-    </section>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4"
+        >
+          {businesses.map((b, i) => (
+            <motion.div
+              key={i}
+              variants={cardVariant}
+              whileHover={{ y: -4, scale: 1.04 }}
+              className="glass-panel rounded-full px-6 py-2 text-slate-100"
+            >
+              {b}
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+    </ScrollReveal>
   );
 }

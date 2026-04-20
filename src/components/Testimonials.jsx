@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import ScrollReveal from "./ScrollReveal";
+import ScrollReveal, { cardVariant, staggerContainer, viewportOnce } from "./ScrollReveal";
 
 const testimonials = [
   {
@@ -19,24 +19,31 @@ const testimonials = [
 export default function Testimonials() {
   return (
     <ScrollReveal>
-    <section className="py-20 bg-black text-white px-6">
-      <h2 className="text-4xl text-center font-bold mb-12">
-        Trusted by Institutes
-      </h2>
+      <section className="px-6 py-20 text-white">
+        <h2 className="section-heading mb-12 text-center text-4xl font-bold">
+          Trusted by Institutes
+        </h2>
 
-      <div className="flex gap-6 overflow-x-auto max-w-6xl mx-auto">
-        {testimonials.map((t, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.05 }}
-            className="min-w-[300px] p-6 bg-white/5 rounded-2xl border border-white/10"
-          >
-            <p className="text-gray-300">"{t.text}"</p>
-            <h4 className="mt-4 font-semibold">{t.name}</h4>
-          </motion.div>
-        ))}
-      </div>
-    </section>
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          className="mx-auto flex max-w-6xl gap-6 overflow-x-auto pb-2"
+        >
+          {testimonials.map((t) => (
+            <motion.div
+              key={t.name}
+              variants={cardVariant}
+              whileHover={{ y: -4 }}
+              className="glass-panel min-w-[300px] rounded-[1.75rem] p-7"
+            >
+              <p className="text-slate-300">"{t.text}"</p>
+              <h4 className="mt-4 font-semibold text-slate-50">{t.name}</h4>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
     </ScrollReveal>
   );
 }
