@@ -1,73 +1,67 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "../animations/fade";
-import { SectionHeading } from "./shared/SectionHeading";
+import TiltCard from "./TiltCard";
+import ScrollReveal from "./ScrollReveal";
 
 const plans = [
   {
-    name: "Launch",
-    price: "$899",
-    description:
-      "For lean teams that need a sharper frontend and a faster first conversion path.",
-  },
-  {
-    name: "Growth",
-    price: "$1,899",
-    description:
-      "For teams ready to pair premium design with automation and performance iterations.",
-    featured: true,
-  },
-  {
-    name: "Scale",
+    name: "Basic",
     price: "Custom",
-    description:
-      "For multi-offer brands that need a flexible system, not just a one-off page build.",
+    features: ["10 Posts", "Basic Automation", "1 Landing Page"],
+  },
+  {
+    name: "Medium",
+    price: "₹8,999",
+    highlight: true,
+    features: ["20 Designs", "WhatsApp Automation", "High Converting Page"],
+  },
+  {
+    name: "Advance",
+    price: "₹14,999",
+    features: ["30 Creatives", "Full Automation", "Premium Landing Page"],
   },
 ];
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="px-4 py-20 sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="Pricing"
-          title="Simple plans with premium execution"
-          description="Retainers and project sprints structured for clarity, collaboration, and fast rollout."
-        />
+    <ScrollReveal>
+    <section className="py-20 bg-black text-white px-6">
+      <h2 className="text-4xl text-center font-bold mb-12">
+        Invest in Your Growth
+      </h2>
 
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-          className="mt-12 grid gap-6 lg:grid-cols-3"
-        >
-          {plans.map((plan) => (
-            <motion.article
-              key={plan.name}
-              variants={fadeInUp}
-              whileHover={{ y: -8 }}
-              className={`rounded-[2rem] p-6 ${
-                plan.featured
-                  ? "border border-blue-400/30 bg-gradient-to-br from-blue-500/18 to-violet-500/18 shadow-glow backdrop-blur-xl"
-                  : "glass-panel"
+      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {plans.map((plan, i) => (
+          <TiltCard key={i}>
+            <motion.div
+              whileHover={{ y: -10 }}
+              className={`p-6 rounded-2xl backdrop-blur-lg ${
+                plan.highlight
+                  ? "border border-purple-500 shadow-[0_0_40px_rgba(139,92,246,0.6)]"
+                  : "border border-white/10"
               }`}
             >
-              <p className="text-sm uppercase tracking-[0.25em] text-slate-300">
-                {plan.name}
-              </p>
-              <p className="mt-5 text-4xl font-semibold text-white">
-                {plan.price}
-              </p>
-              <p className="mt-4 leading-7 text-slate-300">
-                {plan.description}
-              </p>
-              <button className="mt-8 w-full rounded-full bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15">
-                Choose {plan.name}
+              <h3 className="text-xl font-semibold">{plan.name}</h3>
+              <p className="text-3xl my-4">{plan.price}</p>
+
+              <ul className="text-gray-400 space-y-2">
+                {plan.features.map((f, idx) => (
+                  <li key={idx}>• {f}</li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() =>
+                  window.open("https://wa.me/918799783853", "_blank")
+                }
+                className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-green-400 to-green-600"
+              >
+                Get Started
               </button>
-            </motion.article>
-          ))}
-        </motion.div>
+            </motion.div>
+          </TiltCard>
+        ))}
       </div>
     </section>
+    </ScrollReveal>
   );
 }
