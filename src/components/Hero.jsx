@@ -29,17 +29,18 @@ export default function Hero() {
         </p>
 
         <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <motion.button
-            onClick={() =>
-              window.open("https://wa.me/918799783853", "_blank")
-            }
+          <motion.a
+            href="https://wa.me/918799783853"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open WhatsApp chat to get more customers"
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             transition={{ duration: 0.24, ease: premiumEase }}
-            className="premium-button button-sheen rounded-2xl bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-500 px-8 py-3 font-semibold text-slate-950 hover:shadow-[0_24px_60px_rgba(34,197,94,0.36)]"
+            className="premium-button button-sheen inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-500 px-8 py-3 font-semibold text-slate-950 hover:shadow-[0_24px_60px_rgba(34,197,94,0.36)]"
           >
             Get More Customers
-          </motion.button>
+          </motion.a>
         </div>
       </motion.div>
     </section>

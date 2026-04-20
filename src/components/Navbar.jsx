@@ -31,15 +31,16 @@ export default function Navbar() {
           <img src="/logo.png" alt="logo" className="h-10" />
         </div>
 
-        <button
-          onClick={() =>
-            window.open("https://wa.me/918799783853", "_blank")
-          }
-          className="premium-button px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 via-green-400 to-green-500 text-slate-950 font-semibold
+        <a
+          href="https://wa.me/918799783853"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open WhatsApp chat"
+          className="premium-button inline-flex items-center justify-center px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 via-green-400 to-green-500 text-slate-950 font-semibold
           transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_rgba(34,197,94,0.34)]"
         >
           WhatsApp
-        </button>
+        </a>
       </div>
     </motion.div>
   );

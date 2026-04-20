@@ -3,18 +3,19 @@ import { premiumEase } from "./ScrollReveal";
 
 export default function FloatingCTA() {
   return (
-    <motion.button
-      onClick={() =>
-        window.open("https://wa.me/918799783853", "_blank")
-      }
+    <motion.a
+      href="https://wa.me/918799783853"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open WhatsApp chat"
       animate={{ y: [0, -6, 0] }}
       transition={{ repeat: Infinity, duration: 4.2, ease: "easeInOut" }}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
       whileFocus={{ scale: 1.02 }}
-      className="premium-button button-sheen fixed bottom-6 right-6 z-50 rounded-full bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-500 px-6 py-3 font-semibold text-slate-950 shadow-[0_18px_45px_rgba(34,197,94,0.28)]"
+      className="premium-button button-sheen fixed bottom-6 right-6 z-50 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-500 px-6 py-3 font-semibold text-slate-950 shadow-[0_18px_45px_rgba(34,197,94,0.28)]"
     >
       WhatsApp
-    </motion.button>
+    </motion.a>
   );
 }

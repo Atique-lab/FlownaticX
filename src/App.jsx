@@ -1,5 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
-import Loader from "./components/Loader";
+import { lazy, Suspense } from "react";
 import CursorGlow from "./components/CursorGlow";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -15,15 +14,6 @@ const FloatingCTA = lazy(() => import("./components/FloatingCTA"));
 
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (loading) return <Loader />;
-
   return (
     <div className="app-shell">
       <CursorGlow />

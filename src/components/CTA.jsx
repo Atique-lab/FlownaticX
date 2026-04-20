@@ -17,17 +17,18 @@ export default function CTA() {
             Build a system that brings students automatically.
           </p>
 
-          <motion.button
-            onClick={() =>
-              window.open("https://wa.me/918799783853", "_blank")
-            }
+          <motion.a
+            href="https://wa.me/918799783853"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open WhatsApp chat to start your growth journey"
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             transition={{ duration: 0.24, ease: premiumEase }}
-            className="premium-button button-sheen slow-pulse mt-8 rounded-2xl bg-white px-8 py-3 font-semibold text-slate-950"
+            className="premium-button button-sheen slow-pulse mt-8 inline-flex items-center justify-center rounded-2xl bg-white px-8 py-3 font-semibold text-slate-950"
           >
             Start Your Growth Journey
-          </motion.button>
+          </motion.a>
         </div>
       </div>
     </section>

@@ -5,18 +5,18 @@ import ScrollReveal, { cardVariant, premiumEase, staggerContainer, viewportOnce 
 const plans = [
   {
     name: "Basic",
-    price: "Custom",
+    price: "\u20B99,999",
     features: ["10 Posts", "Basic Automation", "1 Landing Page"],
   },
   {
     name: "Medium",
-    price: "\u20B98,999",
+    price: "\u20B915,999",
     highlight: true,
     features: ["20 Designs", "WhatsApp Automation", "High Converting Page"],
   },
   {
     name: "Advance",
-    price: "\u20B914,999",
+    price: "\u20B924,999",
     features: ["30 Creatives", "Full Automation", "Premium Landing Page"],
   },
 ];
@@ -61,18 +61,19 @@ export default function Pricing() {
                     ))}
                   </ul>
 
-                  <button
-                    onClick={() =>
-                      window.open("https://wa.me/918799783853", "_blank")
-                    }
-                    className={`premium-button button-sheen mt-8 w-full rounded-2xl py-3 font-semibold ${
+                  <a
+                    href="https://wa.me/918799783853"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open WhatsApp chat for the ${plan.name} plan`}
+                    className={`premium-button button-sheen mt-8 inline-flex w-full items-center justify-center rounded-2xl py-3 font-semibold ${
                       plan.highlight
                         ? "bg-gradient-to-r from-cyan-300 via-sky-400 to-violet-500 text-slate-950 hover:shadow-[0_24px_70px_rgba(56,189,248,0.3)]"
                         : "bg-gradient-to-r from-emerald-300 via-green-400 to-emerald-500 text-slate-950 hover:shadow-[0_24px_70px_rgba(34,197,94,0.26)]"
                     }`}
                   >
                     Get Started
-                  </button>
+                  </a>
                 </motion.div>
               </TiltCard>
             </motion.div>
