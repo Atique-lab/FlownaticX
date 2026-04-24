@@ -1,35 +1,53 @@
 import { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 import CursorGlow from "./components/CursorGlow";
 import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import Stats from "./components/Stats";
-import BusinessTypes from "./components/BusinessTypes";
-import Services from "./components/Services";
-const UseCases = lazy(() => import("./components/UseCases"));
-const Portfolio = lazy(() => import("./components/Portfolio"));
-const Pricing = lazy(() => import("./components/Pricing"));
-const Testimonials = lazy(() => import("./components/Testimonials"));
-const CTA = lazy(() => import("./components/CTA"));
-const FloatingCTA = lazy(() => import("./components/FloatingCTA"));
+import Footer from "./components/Footer";
+import FloatingCTA from "./components/FloatingCTA";
+import HomePage from "./pages/HomePage";
 
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const TestimonialsPage = lazy(() => import("./pages/TestimonialsPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 rounded-full border-2 border-cyan-400 border-t-transparent" style={{ animation: "spin 0.8s linear infinite" }} />
+    </div>
+  );
+}
 
 export default function App() {
   return (
     <div className="app-shell">
+      <div className="page-gradient" />
       <CursorGlow />
       <Navbar />
-      <Hero />
-      <Stats />
-      <BusinessTypes />
-      <Services />
-      <Suspense fallback={null}>
-        <UseCases />
-        <Portfolio />
-        <Pricing />
-        <Testimonials />
-        <CTA />
-        <FloatingCTA />
-      </Suspense>
+
+      <main>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/testimonials" element={<TestimonialsPage />} />
+            <Route path="/admin" element={<LoginPage />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          </Routes>
+        </Suspense>
+      </main>
+
+      <Footer />
+      <FloatingCTA />
     </div>
   );
 }
