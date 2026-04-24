@@ -226,15 +226,13 @@ export default function HomePage() {
             transition={{ delay: 0.55, duration: 0.5 }}
             className="mt-10 flex flex-wrap justify-center gap-4"
           >
-            <a
-              href="https://wa.me/918799783853"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/contact"
               className="btn-primary flex items-center gap-2 px-8 py-3.5 text-base"
             >
-              <SiWhatsapp className="text-lg" />
-              Get Started Free
-            </a>
+              Start Your Growth Plan
+              <HiOutlineArrowRight className="text-lg" />
+            </Link>
             <Link to="/portfolio" className="btn-secondary flex items-center gap-2 px-8 py-3.5 text-base">
               See Our Work
               <HiOutlineArrowRight className="text-lg" />
@@ -415,17 +413,13 @@ export default function HomePage() {
                 Get a custom growth plan tailored to your business — design, automation, and web development, all in one place.
               </p>
               <div className="mt-8 flex flex-wrap justify-center gap-4">
-                <motion.a
-                  href="https://wa.me/918799783853"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
+                <Link
+                  to="/contact"
                   className="btn-primary flex items-center gap-2 px-8 py-3.5"
                 >
-                  <SiWhatsapp className="text-lg" />
-                  Start on WhatsApp
-                </motion.a>
+                  Claim Your Free Plan
+                  <HiOutlineArrowRight className="text-lg" />
+                </Link>
                 <Link to="/contact" className="btn-secondary px-8 py-3.5">
                   Contact Us
                 </Link>

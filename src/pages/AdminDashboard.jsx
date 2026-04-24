@@ -265,8 +265,8 @@ export default function AdminDashboard() {
                 <thead>
                   <tr className="border-b border-white/6 bg-white/3">
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Contact</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Business</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Service</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
                     <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
@@ -277,14 +277,17 @@ export default function AdminDashboard() {
                     const sc = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
                     return (
                       <tr key={lead.id} className="transition hover:bg-white/3">
-                        <td className="px-5 py-4 font-medium text-white">{lead.name}</td>
-                        <td className="px-5 py-4 text-slate-400">{lead.business || "—"}</td>
                         <td className="px-5 py-4">
-                          {lead.service ? (
-                            <span className="inline-block rounded-lg bg-cyan-500/8 px-2.5 py-1 text-xs text-cyan-300">
-                              {lead.service}
-                            </span>
-                          ) : "—"}
+                          <p className="font-medium text-white">{lead.name}</p>
+                          <p className="text-[10px] text-slate-500">{lead.service}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="text-xs text-slate-300">{lead.email}</p>
+                          <p className="text-[10px] text-slate-500">{lead.phone}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="text-sm text-slate-400">{lead.business_name || "—"}</p>
+                          <p className="text-[10px] text-slate-500">{lead.business_type}</p>
                         </td>
                         <td className="px-5 py-4">
                           <select
@@ -357,21 +360,39 @@ export default function AdminDashboard() {
               </h3>
 
               <div className="mt-6 space-y-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500">Name</p>
-                  <p className="mt-1 text-white">{selectedLead.name}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Name</p>
+                    <p className="mt-1 text-white">{selectedLead.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Service</p>
+                    <p className="mt-1 text-cyan-400 text-sm">{selectedLead.service}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Email</p>
+                    <p className="mt-1 text-white text-sm">{selectedLead.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Phone</p>
+                    <p className="mt-1 text-white text-sm">{selectedLead.phone}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Business</p>
+                    <p className="mt-1 text-white">{selectedLead.business_name || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Type</p>
+                    <p className="mt-1 text-white">{selectedLead.business_type || "Not specified"}</p>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500">Business</p>
-                  <p className="mt-1 text-white">{selectedLead.business || "Not specified"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500">Service Interested In</p>
-                  <p className="mt-1 text-white">{selectedLead.service || "Not specified"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-slate-500">Message</p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
+                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Message</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-300 bg-white/4 p-4 rounded-2xl border border-white/5">
                     {selectedLead.message}
                   </p>
                 </div>

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import {
   HiOutlinePaintBrush,
@@ -520,17 +520,13 @@ export default function PricingPage() {
                           )}
 
                           {/* CTA */}
-                          <a
-                            href="https://wa.me/918799783853"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Get ${plan.name} plan via WhatsApp`}
+                          <Link
+                            to={`/contact?service=${encodeURIComponent(plan.name)}`}
                             className={`mt-6 flex w-full items-center justify-center gap-2 py-3 text-center text-sm ${plan.ctaStyle}`}
                           >
-                            <SiWhatsapp />
-                            {plan.cta}
+                            Select Plan
                             <HiOutlineArrowRight className="text-xs" />
-                          </a>
+                          </Link>
                         </div>
                       </TiltCard>
                     </motion.div>
