@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const ALLOWED_EMAIL = "flownaticx@gmail.com";
+const ALLOWED_EMAIL = "shaikhatique693@gmail.com";
 
 export default async function handler(req, res) {
   // CORS headers

@@ -140,7 +140,7 @@ export default function LoginPage() {
           <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           <p className="text-xs text-slate-600">
-            Only <span className="text-slate-400">flownaticx@gmail.com</span> has access.
+            Only <span className="text-slate-400">shaikhatique693@gmail.com</span> has access.
           </p>
         </div>
 
