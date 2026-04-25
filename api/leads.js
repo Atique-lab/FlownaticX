@@ -93,8 +93,15 @@ export default async function handler(req, res) {
       const token = authHeader.split(" ")[1];
       jwt.verify(token, process.env.JWT_SECRET);
 
-      const { id, status } = req.body;
-      await sql`UPDATE leads SET status = ${status} WHERE id = ${id}`;
+      const { id, status, revenue } = req.body;
+      
+      if (status !== undefined) {
+        await sql`UPDATE leads SET status = ${status} WHERE id = ${id}`;
+      }
+      
+      if (revenue !== undefined) {
+        await sql`UPDATE leads SET revenue = ${revenue} WHERE id = ${id}`;
+      }
 
       return res.status(200).json({ success: true });
     } catch {

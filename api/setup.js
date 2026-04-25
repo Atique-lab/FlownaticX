@@ -26,6 +26,36 @@ export default async function handler(req, res) {
         message TEXT,
         status VARCHAR(50) DEFAULT 'new',
         ip_address VARCHAR(45),
+        revenue DECIMAL(12, 2) DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `;
+
+    // Clients table
+    await sql`
+      CREATE TABLE IF NOT EXISTS clients (
+        id SERIAL PRIMARY KEY,
+        lead_id INTEGER REFERENCES leads(id),
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        business_name VARCHAR(255),
+        service_active VARCHAR(255),
+        total_revenue DECIMAL(12, 2) DEFAULT 0,
+        onboarded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )
+    `;
+
+    // Tasks table
+    await sql`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        client_id INTEGER REFERENCES clients(id),
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'pending', -- pending, ongoing, completed
+        priority VARCHAR(20) DEFAULT 'medium',
+        due_date DATE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `;
@@ -37,6 +67,7 @@ export default async function handler(req, res) {
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS business_name VARCHAR(255)`;
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS business_type VARCHAR(255)`;
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45)`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS revenue DECIMAL(12, 2) DEFAULT 0`;
     } catch {
       // Columns might already exist, ignore error
     }

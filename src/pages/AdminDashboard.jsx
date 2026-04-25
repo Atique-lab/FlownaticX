@@ -15,6 +15,10 @@ import {
   HiOutlineExclamationCircle,
   HiOutlineClock,
   HiOutlineArrowTrendingUp,
+  HiOutlineCurrencyRupee,
+  HiOutlineCheckBadge,
+  HiOutlineListBullet,
+  HiOutlineArrowDownTray,
 } from "react-icons/hi2";
 
 const premiumEase = [0.16, 1, 0.3, 1];
@@ -28,7 +32,10 @@ const STATUS_CONFIG = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("leads"); // leads, sales, clients, tasks
   const [leads, setLeads] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -39,6 +46,26 @@ export default function AdminDashboard() {
   const getToken = useCallback(() => {
     return localStorage.getItem("flownaticx_admin_token");
   }, []);
+
+  const exportToCSV = (data, filename) => {
+    if (!data.length) return;
+    const headers = Object.keys(data[0]).join(",");
+    const rows = data.map((item) =>
+      Object.values(item)
+        .map((val) => `"${val}"`)
+        .join(",")
+    );
+    const csvContent = [headers, ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${filename}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Auth check
   useEffect(() => {
@@ -96,6 +123,24 @@ export default function AdminDashboard() {
       if (selectedLead?.id === id) setSelectedLead({ ...selectedLead, status });
     } catch (err) {
       console.error("Failed to update status:", err);
+    }
+  };
+
+  const updateRevenue = async (id, revenue) => {
+    try {
+      await fetch("/api/leads", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ id, revenue: parseFloat(revenue) }),
+      });
+      setLeads((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, revenue: parseFloat(revenue) } : l))
+      );
+    } catch (err) {
+      console.error("Failed to update revenue:", err);
     }
   };
 
@@ -168,158 +213,315 @@ export default function AdminDashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-8">
-        {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Navigation Tabs */}
+        <div className="mb-8 flex gap-2 border-b border-white/6 pb-4">
           {[
-            { label: "Total Leads", value: totalLeads, icon: HiOutlineUsers, color: "text-cyan-400", bg: "from-cyan-500/8 to-blue-500/8" },
-            { label: "Today", value: todayLeads, icon: HiOutlineCalendarDays, color: "text-emerald-400", bg: "from-emerald-500/8 to-teal-500/8" },
-            { label: "This Week", value: weekLeads, icon: HiOutlineArrowTrendingUp, color: "text-violet-400", bg: "from-violet-500/8 to-purple-500/8" },
-            { label: "Pending (New)", value: newLeads, icon: HiOutlineChartBar, color: "text-amber-400", bg: "from-amber-500/8 to-orange-500/8" },
-          ].map((stat) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="glass-panel rounded-[var(--radius-card)] p-5"
+            { id: "leads", label: "Leads Tracking", icon: HiOutlineUsers },
+            { id: "sales", label: "Sales & Revenue", icon: HiOutlineCurrencyRupee },
+            { id: "clients", label: "Clients Onboarded", icon: HiOutlineCheckBadge },
+            { id: "tasks", label: "Tasks & Projects", icon: HiOutlineListBullet },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                activeTab === tab.id
+                  ? "bg-white/10 text-white border border-white/10"
+                  : "text-slate-500 hover:text-slate-300"
+              }`}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{stat.label}</p>
-                  <p className="mt-1 text-3xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                    {stat.value}
-                  </p>
-                </div>
-                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.bg}`}>
-                  <stat.icon className={`text-xl ${stat.color}`} />
-                </div>
-              </div>
-            </motion.div>
+              <tab.icon className="text-base" />
+              {tab.label}
+            </button>
           ))}
         </div>
-
-        {/* Controls */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* Service Filter */}
-            <div className="flex items-center gap-2">
-              <HiOutlineFunnel className="text-sm text-slate-500" />
-              <select
-                value={filterService}
-                onChange={(e) => setFilterService(e.target.value)}
-                className="rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm text-white outline-none [&>option]:bg-slate-900"
-              >
-                <option value="all">All Services</option>
-                {services.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+        {activeTab === "leads" && (
+          <>
+            {/* Stats */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "Total Leads", value: totalLeads, icon: HiOutlineUsers, color: "text-cyan-400", bg: "from-cyan-500/8 to-blue-500/8" },
+                { label: "Today", value: todayLeads, icon: HiOutlineCalendarDays, color: "text-emerald-400", bg: "from-emerald-500/8 to-teal-500/8" },
+                { label: "This Week", value: weekLeads, icon: HiOutlineArrowTrendingUp, color: "text-violet-400", bg: "from-violet-500/8 to-purple-500/8" },
+                { label: "Pending (New)", value: newLeads, icon: HiOutlineChartBar, color: "text-amber-400", bg: "from-amber-500/8 to-orange-500/8" },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-panel rounded-[var(--radius-card)] p-5"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{stat.label}</p>
+                      <p className="mt-1 text-3xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.bg}`}>
+                      <stat.icon className={`text-xl ${stat.color}`} />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
-            {/* Status Filter */}
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm text-white outline-none [&>option]:bg-slate-900"
-            >
-              <option value="all">All Statuses</option>
-              <option value="new">New</option>
-              <option value="contacted">Contacted</option>
-              <option value="converted">Converted</option>
-              <option value="lost">Lost</option>
-            </select>
+            {/* Controls */}
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {/* Service Filter */}
+                <div className="flex items-center gap-2">
+                  <HiOutlineFunnel className="text-sm text-slate-500" />
+                  <select
+                    value={filterService}
+                    onChange={(e) => setFilterService(e.target.value)}
+                    className="rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm text-white outline-none [&>option]:bg-slate-900"
+                  >
+                    <option value="all">All Services</option>
+                    {services.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm text-white outline-none [&>option]:bg-slate-900"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="converted">Converted</option>
+                  <option value="lost">Lost</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => exportToCSV(leads, "flownaticx_leads")}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/4 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/8"
+                >
+                  <HiOutlineArrowDownTray className="text-base" />
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={fetchLeads}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/4 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/8"
+                >
+                  <HiOutlineArrowPath className={`text-base ${loading ? "animate-spin" : ""}`} />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Leads Table (Moved inside conditional) */}
+        {activeTab === "leads" && (
+          <div className="mt-6 overflow-hidden rounded-[var(--radius-card)] border border-white/6">
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-cyan-400" />
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <HiOutlineExclamationCircle className="mb-3 text-4xl text-red-400" />
+                <p className="text-slate-400">{error}</p>
+                <button type="button" onClick={fetchLeads} className="btn-secondary mt-4 text-sm">
+                  Retry
+                </button>
+              </div>
+            ) : filteredLeads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <HiOutlineUsers className="mb-3 text-4xl text-slate-600" />
+                <p className="text-slate-400">No leads found.</p>
+                <p className="mt-1 text-xs text-slate-600">Leads will appear here when someone submits the contact form.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-white/6 bg-white/3">
+                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Contact</th>
+                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Business</th>
+                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
+                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/4">
+                    {filteredLeads.map((lead) => {
+                      const sc = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
+                      return (
+                        <tr key={lead.id} className="transition hover:bg-white/3">
+                          <td className="px-5 py-4">
+                            <p className="font-medium text-white">{lead.name}</p>
+                            <p className="text-[10px] text-slate-500">{lead.service}</p>
+                          </td>
+                          <td className="px-5 py-4">
+                            <p className="text-xs text-slate-300">{lead.email}</p>
+                            <p className="text-[10px] text-slate-500">{lead.phone}</p>
+                          </td>
+                          <td className="px-5 py-4">
+                            <p className="text-sm text-slate-400">{lead.business_name || "—"}</p>
+                            <p className="text-[10px] text-slate-500">{lead.business_type}</p>
+                          </td>
+                          <td className="px-5 py-4">
+                            <select
+                              value={lead.status}
+                              onChange={(e) => updateStatus(lead.id, e.target.value)}
+                              className={`rounded-lg border px-2.5 py-1 text-xs font-medium outline-none ${sc.color} [&>option]:bg-slate-900 [&>option]:text-white`}
+                            >
+                              <option value="new">New</option>
+                              <option value="contacted">Contacted</option>
+                              <option value="converted">Converted</option>
+                              <option value="lost">Lost</option>
+                            </select>
+                          </td>
+                          <td className="px-5 py-4 text-xs text-slate-500">{formatDate(lead.created_at)}</td>
+                          <td className="px-5 py-4">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedLead(lead)}
+                              className="flex items-center gap-1 rounded-lg bg-white/4 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-white/8"
+                            >
+                              <HiOutlineEye className="text-sm" />
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
+        )}
 
-          <button
-            type="button"
-            onClick={fetchLeads}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/4 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/8"
-          >
-            <HiOutlineArrowPath className={`text-base ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
+        {/* Sales & Revenue Tab */}
+        {activeTab === "sales" && (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                { 
+                  label: "Total Revenue", 
+                  value: `₹${leads.reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0).toLocaleString("en-IN")}`, 
+                  icon: HiOutlineCurrencyRupee, 
+                  color: "text-emerald-400" 
+                },
+                { 
+                  label: "Avg. Deal Value", 
+                  value: `₹${leads.filter(l => (parseFloat(l.revenue) || 0) > 0).length > 0 
+                    ? (leads.reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0) / leads.filter(l => (parseFloat(l.revenue) || 0) > 0).length).toLocaleString("en-IN") 
+                    : 0}`, 
+                  icon: HiOutlineArrowTrendingUp, 
+                  color: "text-cyan-400" 
+                },
+                { 
+                  label: "Conversion Rate", 
+                  value: `${leads.length > 0 ? ((leads.filter(l => l.status === "converted").length / leads.length) * 100).toFixed(1) : 0}%`, 
+                  icon: HiOutlineChartBar, 
+                  color: "text-violet-400" 
+                },
+              ].map((s) => (
+                <div key={s.label} className="glass-panel rounded-3xl p-6">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <s.icon className={`text-2xl ${s.color}`} />
+                    <p className="text-3xl font-black text-white">{s.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="glass-panel rounded-3xl p-8">
+              <h3 className="text-lg font-bold text-white mb-6">Revenue by Service</h3>
+              <div className="space-y-4">
+                {["Design & Branding", "Automation Systems", "Web Development"].map((service) => {
+                  const serviceRevenue = leads
+                    .filter(l => l.service === service)
+                    .reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0);
+                  const totalRev = leads.reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0);
+                  const percentage = totalRev > 0 ? (serviceRevenue / totalRev) * 100 : 0;
+                  
+                  return (
+                    <div key={service}>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-slate-400">{service}</span>
+                        <span className="text-white font-bold">₹{serviceRevenue.toLocaleString("en-IN")}</span>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percentage}%` }}
+                          className="h-full bg-cyan-500" 
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-8 text-sm text-slate-500 text-center italic">
+                Revenue tracking is live. Click on any lead in the "Leads Tracking" tab to set its deal value.
+              </p>
+            </div>
+          </div>
+        )}
 
-        {/* Table */}
-        <div className="mt-6 overflow-hidden rounded-[var(--radius-card)] border border-white/6">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-cyan-400" />
+        {/* Clients Tab */}
+        {activeTab === "clients" && (
+          <div className="glass-panel rounded-3xl p-12 text-center">
+            <HiOutlineCheckBadge className="mx-auto text-5xl text-slate-700 mb-4" />
+            <h3 className="text-xl font-bold text-white">No Onboarded Clients Yet</h3>
+            <p className="mt-2 text-slate-400 max-w-md mx-auto">
+              When a lead is converted, they will appear here as an active client where you can manage their specific projects and subscriptions.
+            </p>
+            <button 
+              onClick={() => setActiveTab("leads")}
+              className="mt-6 btn-primary px-6 py-2.5 text-sm"
+            >
+              Go to Leads Tracking
+            </button>
+          </div>
+        )}
+
+        {/* Tasks Tab */}
+        {activeTab === "tasks" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white">Project Tasks</h3>
+              <button className="btn-secondary text-xs px-4 py-2">Add New Task</button>
             </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <HiOutlineExclamationCircle className="mb-3 text-4xl text-red-400" />
-              <p className="text-slate-400">{error}</p>
-              <button type="button" onClick={fetchLeads} className="btn-secondary mt-4 text-sm">
-                Retry
-              </button>
+            <div className="grid gap-4">
+              <div className="glass-panel rounded-2xl p-6 border-l-4 border-amber-500">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded">Pending</span>
+                    <h4 className="mt-2 font-bold text-white">Website SEO Audit Implementation</h4>
+                    <p className="text-sm text-slate-500 mt-1">Complete the dynamic meta tags and legal pages setup.</p>
+                  </div>
+                  <span className="text-xs text-slate-500">Due: 28 Apr</span>
+                </div>
+              </div>
+              <div className="glass-panel rounded-2xl p-6 border-l-4 border-cyan-500 opacity-60">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-500 bg-cyan-500/10 px-2 py-1 rounded">Ongoing</span>
+                    <h4 className="mt-2 font-bold text-white">Admin Dashboard Expansion</h4>
+                    <p className="text-sm text-slate-500 mt-1">Implementing sales analytics and CSV export logic.</p>
+                  </div>
+                  <span className="text-xs text-slate-500">Due: Today</span>
+                </div>
+              </div>
             </div>
-          ) : filteredLeads.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <HiOutlineUsers className="mb-3 text-4xl text-slate-600" />
-              <p className="text-slate-400">No leads found.</p>
-              <p className="mt-1 text-xs text-slate-600">Leads will appear here when someone submits the contact form.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-white/6 bg-white/3">
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Contact</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Business</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/4">
-                  {filteredLeads.map((lead) => {
-                    const sc = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
-                    return (
-                      <tr key={lead.id} className="transition hover:bg-white/3">
-                        <td className="px-5 py-4">
-                          <p className="font-medium text-white">{lead.name}</p>
-                          <p className="text-[10px] text-slate-500">{lead.service}</p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="text-xs text-slate-300">{lead.email}</p>
-                          <p className="text-[10px] text-slate-500">{lead.phone}</p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="text-sm text-slate-400">{lead.business_name || "—"}</p>
-                          <p className="text-[10px] text-slate-500">{lead.business_type}</p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <select
-                            value={lead.status}
-                            onChange={(e) => updateStatus(lead.id, e.target.value)}
-                            className={`rounded-lg border px-2.5 py-1 text-xs font-medium outline-none ${sc.color} [&>option]:bg-slate-900 [&>option]:text-white`}
-                          >
-                            <option value="new">New</option>
-                            <option value="contacted">Contacted</option>
-                            <option value="converted">Converted</option>
-                            <option value="lost">Lost</option>
-                          </select>
-                        </td>
-                        <td className="px-5 py-4 text-xs text-slate-500">{formatDate(lead.created_at)}</td>
-                        <td className="px-5 py-4">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedLead(lead)}
-                            className="flex items-center gap-1 rounded-lg bg-white/4 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-white/8"
-                          >
-                            <HiOutlineEye className="text-sm" />
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Total count */}
         {!loading && !error && (
@@ -396,13 +598,23 @@ export default function AdminDashboard() {
                     {selectedLead.message}
                   </p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-slate-500">Status</p>
+                <div className="flex items-center justify-between gap-6 bg-white/4 p-4 rounded-2xl border border-white/5">
+                  <div className="flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Deal Value (₹)</p>
+                    <input 
+                      type="number"
+                      defaultValue={selectedLead.revenue || 0}
+                      onBlur={(e) => updateRevenue(selectedLead.id, e.target.value)}
+                      className="mt-1 w-full bg-transparent text-emerald-400 font-bold outline-none text-xl"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Status</p>
                     <select
                       value={selectedLead.status}
                       onChange={(e) => updateStatus(selectedLead.id, e.target.value)}
-                      className={`mt-1 rounded-lg border px-3 py-1.5 text-sm font-medium outline-none ${
+                      className={`mt-1 w-full rounded-lg border px-3 py-1.5 text-sm font-medium outline-none ${
                         (STATUS_CONFIG[selectedLead.status] || STATUS_CONFIG.new).color
                       } [&>option]:bg-slate-900 [&>option]:text-white`}
                     >
@@ -411,10 +623,6 @@ export default function AdminDashboard() {
                       <option value="converted">Converted</option>
                       <option value="lost">Lost</option>
                     </select>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs uppercase tracking-wider text-slate-500">Received</p>
-                    <p className="mt-1 text-xs text-slate-400">{formatDate(selectedLead.created_at)}</p>
                   </div>
                 </div>
               </div>

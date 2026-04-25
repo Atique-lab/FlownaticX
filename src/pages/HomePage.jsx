@@ -184,66 +184,106 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 30, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.7, ease: premiumEase }}
-          className="relative z-10 max-w-4xl"
+          className="relative z-10 max-w-5xl"
         >
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="section-kicker mb-6"
+            className="mb-8 flex flex-wrap justify-center gap-3"
           >
-            Digital Growth Agency
-          </motion.p>
+            <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-cyan-400 backdrop-blur-md">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500"></span>
+              </span>
+              Verified Growth Agency
+            </span>
+            <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 backdrop-blur-md">
+              <HiOutlineStar className="text-sm" />
+              5-Star Client Rating
+            </span>
+          </motion.div>
 
           <h1
-            className="text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+            className="text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            We Help{" "}
-            <span className="heading-gradient relative inline-block min-w-[200px]">
-              <motion.span
-                key={cycleWords[wordIndex]}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.4, ease: premiumEase }}
-                className="inline-block"
-              >
-                {cycleWords[wordIndex]}
-              </motion.span>
+            Scale Your{" "}
+            <span className="heading-gradient relative inline-block min-w-[240px]">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={cycleWords[wordIndex]}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -24 }}
+                  transition={{ duration: 0.5, ease: premiumEase }}
+                  className="inline-block"
+                >
+                  {cycleWords[wordIndex]}
+                </motion.span>
+              </AnimatePresence>
             </span>
             <br />
-            Get More Customers
+            Faster Than Ever.
           </h1>
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="mx-auto mt-6 max-w-2xl text-lg text-slate-300/90 md:text-xl"
+            className="mx-auto mt-8 max-w-3xl text-lg leading-relaxed text-slate-300/90 md:text-xl"
           >
-            Premium design, smart automation, and conversion-optimized websites
-            — everything your business needs to grow on autopilot.
+            We help local businesses dominate their market with <span className="text-white font-semibold">Premium Design</span>, 
+            <span className="text-white font-semibold"> Smart AI Automation</span>, and 
+            <span className="text-white font-semibold"> High-Converting Websites</span>.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.5 }}
-            className="mt-10 flex flex-wrap justify-center gap-4"
+            className="mt-12 flex flex-wrap justify-center gap-4"
           >
             <Link
-              to="/contact"
-              className="btn-primary flex items-center gap-2 px-8 py-3.5 text-base"
+              to="/pricing"
+              className="btn-primary flex items-center gap-2 px-10 py-4 text-base font-bold shadow-cyan-500/20"
             >
-              Start Your Growth Plan
+              Explore Growth Plans
               <HiOutlineArrowRight className="text-lg" />
             </Link>
-            <Link to="/portfolio" className="btn-secondary flex items-center gap-2 px-8 py-3.5 text-base">
-              See Our Work
-              <HiOutlineArrowRight className="text-lg" />
+            <Link to="/portfolio" className="btn-secondary flex items-center gap-2 px-10 py-4 text-base font-bold">
+              View Our Work
             </Link>
           </motion.div>
+
+          {/* Trusted By Bar */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            transition={{ delay: 0.8 }}
+            className="mt-20 flex flex-col items-center gap-6"
+          >
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+              TRUSTED BY LEADERS IN LOCAL BUSINESS
+            </p>
+            <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 grayscale transition-all hover:grayscale-0">
+              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
+                <div className="h-6 w-6 rounded bg-white/10" /> SAHAR
+              </div>
+              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
+                <div className="h-6 w-6 rounded bg-white/10" /> JAWAHAR
+              </div>
+              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
+                <div className="h-6 w-6 rounded bg-white/10" /> FITZONE
+              </div>
+              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
+                <div className="h-6 w-6 rounded bg-white/10" /> EDUFLOW
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
 
           <motion.div
             initial={{ opacity: 0 }}

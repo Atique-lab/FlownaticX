@@ -457,15 +457,15 @@ export default function PricingPage() {
                         >
                           {/* Badge */}
                           {plan.badge && (
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                               <span
-                                className={`flex items-center gap-1 rounded-full px-4 py-1 text-xs font-bold shadow-lg ${
+                                className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-2xl ${
                                   plan.popular
-                                    ? "bg-gradient-to-r from-cyan-400 to-violet-500 text-white shadow-cyan-500/20"
-                                    : "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 shadow-amber-500/20"
+                                    ? "bg-gradient-to-r from-cyan-400 to-violet-500 text-white shadow-cyan-500/40 ring-4 ring-cyan-500/10"
+                                    : "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-amber-500/40 ring-4 ring-amber-500/10"
                                 }`}
                               >
-                                {plan.popular ? <HiOutlineFire /> : <HiOutlineClock />}
+                                {plan.popular ? <HiOutlineFire className="text-sm" /> : <HiOutlineStar className="text-sm" />}
                                 {plan.badge}
                               </span>
                             </div>
@@ -526,13 +526,22 @@ export default function PricingPage() {
                           )}
 
                           {/* CTA */}
-                          <Link
-                            to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
-                            className={`mt-6 flex w-full items-center justify-center gap-2 py-3 text-center text-sm ${plan.ctaStyle}`}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const whatsappMsg = encodeURIComponent(
+                                `Hi FlownaticX! I'm interested in the ${plan.name} plan for ${activeCat.label}.\n\n` +
+                                `💰 Price: ${symbol}${price}${plan.period}\n` +
+                                `🛠 Service: ${activeCat.label}\n\n` +
+                                `Please share the next steps for onboarding.`
+                              );
+                              window.open(`https://wa.me/918799783853?text=${whatsappMsg}`, "_blank");
+                            }}
+                            className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
                           >
-                            Select Plan
+                            Select {plan.name} Plan
                             <HiOutlineArrowRight className="text-xs" />
-                          </Link>
+                          </button>
                         </div>
                       </TiltCard>
                     </motion.div>
