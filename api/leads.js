@@ -2,7 +2,19 @@ import { neon } from "@neondatabase/serverless";
 import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    "https://flownaticx.com",
+    "https://flownaticx.vercel.app",
+    "http://localhost:5173", // Local development
+  ];
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "https://flownaticx.com");
+  }
+
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
@@ -14,13 +26,32 @@ export default async function handler(req, res) {
     try {
       const { name, email, phone, businessName, businessType, service, message } = req.body;
 
+      // 1. Basic Validation
       if (!name || !email || !phone || !message) {
-        return res.status(400).json({ error: "Name, Email, Phone, and Message are required." });
+        return res.status(400).json({ error: "All required fields must be filled." });
+      }
+
+      // 2. Regex Validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^\+?[\d\s-]{10,}$/;
+      if (!emailRegex.test(email)) return res.status(400).json({ error: "Invalid email format." });
+      if (!phoneRegex.test(phone)) return res.status(400).json({ error: "Invalid phone format." });
+
+      // 3. Rate Limiting (IP Based)
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+      const recentLeads = await sql`
+        SELECT COUNT(*) FROM leads 
+        WHERE ip_address = ${ip} 
+        AND created_at > NOW() - INTERVAL '10 minutes'
+      `;
+      
+      if (parseInt(recentLeads[0].count) >= 3) {
+        return res.status(429).json({ error: "Too many requests. Please try again in 10 minutes." });
       }
 
       const result = await sql`
-        INSERT INTO leads (name, email, phone, business_name, business_type, service, message)
-        VALUES (${name}, ${email}, ${phone}, ${businessName || ""}, ${businessType || ""}, ${service || ""}, ${message})
+        INSERT INTO leads (name, email, phone, business_name, business_type, service, message, ip_address)
+        VALUES (${name}, ${email}, ${phone}, ${businessName || ""}, ${businessType || ""}, ${service || ""}, ${message}, ${ip})
         RETURNING id, created_at
       `;
 

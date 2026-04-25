@@ -25,6 +25,7 @@ export default async function handler(req, res) {
         service VARCHAR(255),
         message TEXT,
         status VARCHAR(50) DEFAULT 'new',
+        ip_address VARCHAR(45),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `;
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`;
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS business_name VARCHAR(255)`;
       await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS business_type VARCHAR(255)`;
+      await sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45)`;
     } catch {
       // Columns might already exist, ignore error
     }
