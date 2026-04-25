@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       `;
 
       return res.status(200).json({ success: true, leads });
-    } catch (error) {
+    } catch {
       return res.status(401).json({ error: "Invalid token" });
     }
   }
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       await sql`UPDATE leads SET status = ${status} WHERE id = ${id}`;
 
       return res.status(200).json({ success: true });
-    } catch (error) {
+    } catch {
       return res.status(401).json({ error: "Invalid token" });
     }
   }

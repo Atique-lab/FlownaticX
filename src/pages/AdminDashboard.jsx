@@ -68,7 +68,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.success) setLeads(data.leads);
       else setError(data.error);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch leads. Check your connection.");
     } finally {
       setLoading(false);

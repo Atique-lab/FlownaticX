@@ -18,12 +18,13 @@ import {
   HiOutlineDocumentText,
 } from "react-icons/hi2";
 import { SiWhatsapp } from "react-icons/si";
-import ScrollReveal, {
+import ScrollReveal from "../components/ScrollReveal";
+import {
   cardVariant,
   premiumEase,
   staggerContainer,
   viewportOnce,
-} from "../components/ScrollReveal";
+} from "../components/revealVariants";
 import TiltCard from "../components/TiltCard";
 
 /* ─── TEXT CYCLE ─── */

@@ -11,12 +11,13 @@ import {
   HiOutlineArrowRight,
   HiOutlineStar,
 } from "react-icons/hi2";
-import ScrollReveal, {
+import ScrollReveal from "../components/ScrollReveal";
+import {
   cardVariant,
   premiumEase,
   staggerContainer,
   viewportOnce,
-} from "../components/ScrollReveal";
+} from "../components/revealVariants";
 
 const values = [
   { icon: HiOutlineRocketLaunch, title: "Results-Driven", desc: "Every design, every automation, every line of code is built to generate measurable business growth.", color: "text-cyan-400" },

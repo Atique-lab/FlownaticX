@@ -6,12 +6,13 @@ import {
   HiOutlineGlobeAlt,
   HiOutlineArrowRight,
 } from "react-icons/hi2";
-import ScrollReveal, {
+import ScrollReveal from "../components/ScrollReveal";
+import {
   cardVariant,
   premiumEase,
   staggerContainer,
   viewportOnce,
-} from "../components/ScrollReveal";
+} from "../components/revealVariants";
 import TiltCard from "../components/TiltCard";
 
 const serviceCategories = [

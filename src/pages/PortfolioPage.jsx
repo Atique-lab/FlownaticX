@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   HiOutlinePaintBrush,
   HiOutlineBolt,
@@ -9,7 +9,8 @@ import {
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
 } from "react-icons/hi2";
-import ScrollReveal, { premiumEase } from "../components/ScrollReveal";
+import ScrollReveal from "../components/ScrollReveal";
+import { premiumEase } from "../components/revealVariants";
 
 import p1 from "../assets/projects/project1.jpg";
 import p2 from "../assets/projects/project2.jpg";
@@ -131,8 +132,8 @@ export default function PortfolioPage() {
   };
 
   const closePopup = () => setCurrentIndex(null);
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % filtered.length);
-  const prevSlide = () => setCurrentIndex((prev) => (prev === 0 ? filtered.length - 1 : prev - 1));
+  const nextSlide = useCallback(() => setCurrentIndex((prev) => (prev + 1) % filtered.length), [filtered.length]);
+  const prevSlide = useCallback(() => setCurrentIndex((prev) => (prev === 0 ? filtered.length - 1 : prev - 1)), [filtered.length]);
 
   useEffect(() => {
     if (currentIndex === null) {
@@ -147,7 +148,7 @@ export default function PortfolioPage() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [currentIndex, lastFocusedIndex, filtered.length]);
+  }, [currentIndex, lastFocusedIndex, filtered.length, nextSlide, prevSlide]);
 
   const getCatColor = (cat) => {
     if (cat === "design") return "text-pink-400 bg-pink-500/10";

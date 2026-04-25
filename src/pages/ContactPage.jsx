@@ -13,18 +13,21 @@ import {
   HiOutlineBriefcase,
 } from "react-icons/hi2";
 import { SiWhatsapp } from "react-icons/si";
-import { premiumEase } from "../components/ScrollReveal";
+import { premiumEase } from "../components/revealVariants";
 
 export default function ContactPage() {
   const location = useLocation();
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [preSelectedService, setPreSelectedService] = useState("");
+  const [preSelectedService, setPreSelectedService] = useState("Web Development");
+  const [selectedPlan, setSelectedPlan] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const service = params.get("service");
+    const plan = params.get("plan");
     if (service) setPreSelectedService(service);
+    if (plan) setSelectedPlan(plan);
   }, [location]);
 
   const handleSubmit = async (e) => {
@@ -227,7 +230,12 @@ export default function ContactPage() {
                     {/* Service */}
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Service Required</label>
-                      <select name="service" defaultValue={preSelectedService} className="w-full rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-white outline-none focus:border-cyan-400/40 transition-all [&>option]:bg-slate-900">
+                      <select 
+                        name="service" 
+                        value={preSelectedService} 
+                        onChange={(e) => setPreSelectedService(e.target.value)}
+                        className="w-full rounded-2xl border border-white/8 bg-white/4 px-4 py-4 text-white outline-none focus:border-cyan-400/40 transition-all [&>option]:bg-slate-900"
+                      >
                         <option value="Design & Branding">Design & Branding</option>
                         <option value="Automation Systems">Automation Systems</option>
                         <option value="Web Development">Web Development</option>
@@ -239,7 +247,14 @@ export default function ContactPage() {
                   {/* Message */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Project Details</label>
-                    <textarea name="message" rows={4} required placeholder="Tell us about your goals and what you hope to achieve..." className="w-full resize-none rounded-2xl border border-white/8 bg-white/4 px-6 py-4 text-white outline-none focus:border-cyan-400/40 transition-all" />
+                    <textarea 
+                      name="message" 
+                      rows={4} 
+                      required 
+                      defaultValue={selectedPlan ? `Interested in the ${selectedPlan} plan. ` : ""}
+                      placeholder="Tell us about your goals and what you hope to achieve..." 
+                      className="w-full resize-none rounded-2xl border border-white/8 bg-white/4 px-6 py-4 text-white outline-none focus:border-cyan-400/40 transition-all" 
+                    />
                   </div>
 
                   {status === "error" && (

@@ -13,7 +13,7 @@ const navLinks = [
   { label: "Contact", to: "/contact" },
 ];
 
-const premiumEase = [0.16, 1, 0.3, 1];
+import { premiumEase } from "./revealVariants";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -21,7 +21,7 @@ export default function Navbar() {
   const location = useLocation();
 
   // Hide navbar on admin pages
-  if (location.pathname.startsWith("/admin")) return null;
+  const isAdmin = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -30,9 +30,10 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+    if (!isAdmin) window.scrollTo(0, 0);
+  }, [location.pathname, isAdmin]);
+
+  if (isAdmin) return null;
 
   return (
     <>
@@ -69,6 +70,7 @@ export default function Navbar() {
                     ? "text-white"
                     : "text-slate-400 hover:text-white"
                 }`}
+                onClick={() => setMenuOpen(false)}
               >
                 {link.label}
                 {location.pathname === link.to && (
@@ -148,6 +150,7 @@ export default function Navbar() {
                         ? "heading-gradient"
                         : "text-slate-300 hover:text-white"
                     }`}
+                    onClick={() => setMenuOpen(false)}
                     style={{ fontFamily: "var(--font-heading)" }}
                   >
                     {link.label}

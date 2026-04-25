@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   HiOutlinePaintBrush,
   HiOutlineBolt,
@@ -12,12 +13,12 @@ import {
   HiOutlineExclamationTriangle,
 } from "react-icons/hi2";
 import { SiWhatsapp } from "react-icons/si";
-import ScrollReveal, {
+import ScrollReveal from "../components/ScrollReveal";
+import {
   cardVariant,
   premiumEase,
   staggerContainer,
-  viewportOnce,
-} from "../components/ScrollReveal";
+} from "../components/revealVariants";
 import TiltCard from "../components/TiltCard";
 
 /* ════════════════════════════════════════════
@@ -116,7 +117,7 @@ const categories = [
   },
   {
     id: "automation",
-    label: "Automation",
+    label: "Automation Systems",
     icon: HiOutlineBolt,
     billingNote: "per month",
     urgency: "Setup takes 48 hrs — Start today, go live by weekend",
@@ -521,7 +522,7 @@ export default function PricingPage() {
 
                           {/* CTA */}
                           <Link
-                            to={`/contact?service=${encodeURIComponent(plan.name)}`}
+                            to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
                             className={`mt-6 flex w-full items-center justify-center gap-2 py-3 text-center text-sm ${plan.ctaStyle}`}
                           >
                             Select Plan
