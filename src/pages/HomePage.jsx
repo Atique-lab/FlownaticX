@@ -258,6 +258,7 @@ export default function HomePage() {
           </motion.div>
 
           {/* Trusted By Bar */}
+          {/* Trusted By Bar */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
@@ -282,13 +283,11 @@ export default function HomePage() {
               </div>
             </div>
           </motion.div>
-        </motion.div>
-      </section>
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.75, duration: 0.6 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
             className="mt-12 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-slate-400"
           >
             {stats.map((s) => (
@@ -300,6 +299,8 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
       </section>
+
+      {/* ══════════ SERVICES PREVIEW ══════════ */}
 
       {/* ══════════ SERVICES PREVIEW ══════════ */}
       <ScrollReveal>
