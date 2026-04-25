@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   HiOutlineUsers,
@@ -19,6 +19,11 @@ import {
   HiOutlineCheckBadge,
   HiOutlineListBullet,
   HiOutlineArrowDownTray,
+  HiOutlineArrowUpTray,
+  HiOutlinePlus,
+  HiOutlineSquares2X2,
+  HiOutlineBanknotes,
+  HiOutlineTrash,
 } from "react-icons/hi2";
 
 const premiumEase = [0.16, 1, 0.3, 1];
@@ -32,40 +37,22 @@ const STATUS_CONFIG = {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("leads"); // leads, sales, clients, tasks
+  const [activeTab, setActiveTab] = useState("overview");
   const [leads, setLeads] = useState([]);
   const [clients, setClients] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [filterService, setFilterService] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [user, setUser] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importRows, setImportRows] = useState([]);
+  const [isImporting, setIsImporting] = useState(false);
 
-  const getToken = useCallback(() => {
-    return localStorage.getItem("flownaticx_admin_token");
-  }, []);
-
-  const exportToCSV = (data, filename) => {
-    if (!data.length) return;
-    const headers = Object.keys(data[0]).join(",");
-    const rows = data.map((item) =>
-      Object.values(item)
-        .map((val) => `"${val}"`)
-        .join(",")
-    );
-    const csvContent = [headers, ...rows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${filename}.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const getToken = useCallback(() => localStorage.getItem("flownaticx_admin_token"), []);
 
   // Auth check
   useEffect(() => {
@@ -78,71 +65,41 @@ export default function AdminDashboard() {
     if (userData) setUser(JSON.parse(userData));
   }, [navigate, getToken]);
 
-  // Fetch leads
-  const fetchLeads = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
+    const token = getToken();
     try {
-      const res = await fetch("/api/leads", {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      if (res.status === 401) {
-        localStorage.removeItem("flownaticx_admin_token");
-        localStorage.removeItem("flownaticx_admin_user");
-        navigate("/admin", { replace: true });
+      const [leadsRes, clientsRes, tasksRes] = await Promise.all([
+        fetch("/api/leads", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/clients", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/tasks", { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+
+      if (leadsRes.status === 401) {
+        logout();
         return;
       }
-      const data = await res.json();
-      if (data.success) setLeads(data.leads);
-      else setError(data.error);
-    } catch {
-      setError("Failed to fetch leads. Check your connection.");
+
+      const [leadsData, clientsData, tasksData] = await Promise.all([
+        leadsRes.json(),
+        clientsRes.json(),
+        tasksRes.json(),
+      ]);
+
+      if (leadsData.success) setLeads(leadsData.leads);
+      if (clientsData.success) setClients(clientsData.clients);
+      if (tasksData.success) setTasks(tasksData.tasks);
+    } catch (err) {
+      setError("Failed to sync data. Check connection.");
     } finally {
       setLoading(false);
     }
-  }, [getToken, navigate]);
+  }, [getToken]);
 
   useEffect(() => {
-    if (getToken()) fetchLeads();
-  }, [fetchLeads, getToken]);
-
-  // Update lead status
-  const updateStatus = async (id, status) => {
-    try {
-      await fetch("/api/leads", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({ id, status }),
-      });
-      setLeads((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status } : l))
-      );
-      if (selectedLead?.id === id) setSelectedLead({ ...selectedLead, status });
-    } catch (err) {
-      console.error("Failed to update status:", err);
-    }
-  };
-
-  const updateRevenue = async (id, revenue) => {
-    try {
-      await fetch("/api/leads", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({ id, revenue: parseFloat(revenue) }),
-      });
-      setLeads((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, revenue: parseFloat(revenue) } : l))
-      );
-    } catch (err) {
-      console.error("Failed to update revenue:", err);
-    }
-  };
+    if (getToken()) fetchData();
+  }, [fetchData, getToken]);
 
   const logout = () => {
     localStorage.removeItem("flownaticx_admin_token");
@@ -150,486 +107,820 @@ export default function AdminDashboard() {
     navigate("/admin", { replace: true });
   };
 
-  // Stats
-  const today = new Date().toDateString();
-  const weekAgo = new Date(Date.now() - 7 * 86400000);
-  const totalLeads = leads.length;
-  const todayLeads = leads.filter((l) => new Date(l.created_at).toDateString() === today).length;
-  const weekLeads = leads.filter((l) => new Date(l.created_at) >= weekAgo).length;
-  const newLeads = leads.filter((l) => l.status === "new").length;
+  const updateLead = async (id, updates) => {
+    try {
+      await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...updates } : l)));
+      if (selectedLead?.id === id) setSelectedLead({ ...selectedLead, ...updates });
+    } catch (err) { console.error(err); }
+  };
 
-  // Filters
-  const services = [...new Set(leads.map((l) => l.service).filter(Boolean))];
-  const filteredLeads = leads.filter((l) => {
+  const onboardClient = async (lead, dealInfo) => {
+    try {
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({
+          lead_id: lead.id,
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone,
+          business_name: lead.business_name,
+          service: lead.service,
+          ...dealInfo,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setClients([data.client, ...clients]);
+        setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status: 'converted' } : l));
+        setSelectedLead(null);
+        setActiveTab("clients");
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const exportLeads = () => {
+    const data = leads.filter(l => {
+      if (filterService !== "all" && l.service !== filterService) return false;
+      if (filterStatus !== "all" && l.status !== filterStatus) return false;
+      return true;
+    });
+    if (!data.length) return;
+    const headers = ["Name", "Email", "Phone", "Business", "Service", "Status", "Date"].join(",");
+    const rows = data.map(l => [
+      `"${l.name}"`, `"${l.email}"`, `"${l.phone}"`, `"${l.business_name}"`, `"${l.service}"`, `"${l.status}"`, `"${l.created_at}"`
+    ].join(","));
+    const blob = new Blob([[headers, ...rows].join("\n")], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `leads_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const handleImportCSV = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target.result;
+      const lines = text.split("\n").filter(l => l.trim());
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(",").map(v => v.trim().replace(/"/g, ''));
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = values[i]);
+        return obj;
+      });
+      setImportRows(rows);
+      setShowImportModal(true);
+    };
+    reader.readAsText(file);
+  };
+
+  const confirmImport = async () => {
+    setIsImporting(true);
+    try {
+      const res = await fetch("/api/import-leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        body: JSON.stringify({ rows: importRows }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchData();
+        setShowImportModal(false);
+        setImportRows([]);
+      }
+    } catch (err) { console.error(err); }
+    finally { setIsImporting(false); }
+  };
+
+  // Helper: Format Date
+  const formatDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div className="flex h-screen bg-slate-950 text-slate-200 overflow-hidden">
+      {/* ── Sidebar ── */}
+      <aside className="w-64 border-r border-white/5 bg-slate-900/50 flex flex-col">
+        <div className="p-6">
+          <a href="/" className="logo-text text-xl">
+            <span className="logo-flow">Flow</span><span className="logo-natic">natic</span><span className="logo-x">X</span>
+          </a>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">Agency CRM</p>
+        </div>
+
+        <nav className="flex-1 px-4 space-y-1">
+          {[
+            { id: "overview", label: "Overview", icon: HiOutlineSquares2X2 },
+            { id: "leads", label: "Leads", icon: HiOutlineUsers },
+            { id: "clients", label: "Clients", icon: HiOutlineCheckBadge },
+            { id: "tasks", label: "Tasks", icon: HiOutlineListBullet },
+            { id: "revenue", label: "Revenue", icon: HiOutlineBanknotes },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                activeTab === item.id ? "bg-cyan-500/10 text-cyan-400" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              }`}
+            >
+              <item.icon className="text-lg" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-white/5">
+          {user && (
+            <div className="flex items-center gap-3 px-2 mb-4">
+              <img src={user.picture} alt="" className="h-8 w-8 rounded-full border border-white/10" />
+              <div className="overflow-hidden">
+                <p className="text-xs font-bold text-white truncate">{user.name || 'Admin'}</p>
+                <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={logout}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-xs font-medium text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all"
+          >
+            <HiOutlineArrowRightOnRectangle className="text-lg" />
+            Sign Out
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Main Content ── */}
+      <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden relative">
+        {/* Header */}
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50 backdrop-blur-xl z-20">
+          <h2 className="text-lg font-bold text-white capitalize">{activeTab}</h2>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={fetchData} 
+              className={`p-2 rounded-lg hover:bg-white/5 transition-all ${loading ? 'animate-spin' : ''}`}
+            >
+              <HiOutlineArrowPath className="text-slate-400" />
+            </button>
+          </div>
+        </header>
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: premiumEase }}
+            >
+              {activeTab === "overview" && <DashboardOverview leads={leads} clients={clients} tasks={tasks} />}
+              {activeTab === "leads" && (
+                <LeadsSection 
+                  leads={leads} 
+                  services={[...new Set(leads.map(l => l.service).filter(Boolean))]} 
+                  onView={setSelectedLead}
+                  onExport={exportLeads}
+                  onImport={handleImportCSV}
+                />
+              )}
+              {activeTab === "clients" && <ClientsSection clients={clients} onView={setSelectedClient} />}
+              {activeTab === "tasks" && <TasksSection tasks={tasks} clients={clients} onRefresh={fetchData} />}
+              {activeTab === "revenue" && <RevenueSection clients={clients} />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* ── Drawers & Modals ── */}
+        <LeadDetailDrawer 
+          lead={selectedLead} 
+          onClose={() => setSelectedLead(null)} 
+          onUpdate={updateLead} 
+          onOnboard={onboardClient} 
+        />
+        <ClientDetailDrawer
+          client={selectedClient}
+          tasks={tasks.filter(t => t.client_id === selectedClient?.id)}
+          onClose={() => setSelectedClient(null)}
+          onUpdate={fetchData}
+        />
+        {showImportModal && (
+          <ImportPreviewModal 
+            rows={importRows} 
+            onClose={() => setShowImportModal(false)} 
+            onConfirm={confirmImport} 
+            loading={isImporting}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUB-COMPONENTS (To be expanded in subsequent parts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DashboardOverview({ leads, clients, tasks }) {
+  const stats = [
+    { label: "Total Leads", value: leads.length, icon: HiOutlineUsers, color: "text-cyan-400", bg: "bg-cyan-500/10" },
+    { label: "Active Clients", value: clients.length, icon: HiOutlineCheckBadge, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+    { label: "Pending Tasks", value: tasks.filter(t => t.status !== 'completed').length, icon: HiOutlineClock, color: "text-amber-400", bg: "bg-amber-500/10" },
+    { label: "Total Revenue", value: `₹${clients.reduce((acc, c) => acc + parseFloat(c.amount_paid || 0), 0).toLocaleString()}`, icon: HiOutlineBanknotes, color: "text-violet-400", bg: "bg-violet-500/10" },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map(s => (
+          <div key={s.label} className="glass-panel p-6 rounded-[2rem] border border-white/5 flex items-center gap-5">
+            <div className={`h-12 w-12 rounded-2xl ${s.bg} flex items-center justify-center ${s.color}`}>
+              <s.icon className="text-2xl" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{s.label}</p>
+              <p className="text-2xl font-black text-white">{s.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Activity Feed and Recent Charts would go here */}
+    </div>
+  );
+}
+
+function LeadsSection({ leads, services, onView, onExport, onImport }) {
+  const [filterService, setFilterService] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  const filtered = leads.filter(l => {
     if (filterService !== "all" && l.service !== filterService) return false;
     if (filterStatus !== "all" && l.status !== filterStatus) return false;
     return true;
   });
 
-  const formatDate = (d) => {
-    const date = new Date(d);
-    return date.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+            <HiOutlineFunnel className="text-slate-500" />
+            <select 
+              value={filterService} 
+              onChange={e => setFilterService(e.target.value)}
+              className="bg-transparent text-sm text-slate-300 outline-none"
+            >
+              <option value="all">All Services</option>
+              {services.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+            <select 
+              value={filterStatus} 
+              onChange={e => setFilterStatus(e.target.value)}
+              className="bg-transparent text-sm text-slate-300 outline-none"
+            >
+              <option value="all">All Statuses</option>
+              {Object.keys(STATUS_CONFIG).map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-all cursor-pointer">
+            <HiOutlineArrowUpTray />
+            Import CSV
+            <input type="file" accept=".csv" onChange={onImport} className="hidden" />
+          </label>
+          <button 
+            onClick={onExport}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-all"
+          >
+            <HiOutlineArrowDownTray />
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <div className="glass-panel border border-white/5 rounded-[2rem] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[800px]">
+            <thead>
+              <tr className="border-b border-white/5 bg-white/[0.02]">
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Lead Info</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Business</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Date</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filtered.map(l => (
+                <tr key={l.id} className="hover:bg-white/[0.02] transition-all group">
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-white group-hover:text-cyan-400 transition-colors">{l.name}</p>
+                    <p className="text-xs text-slate-500">{l.email}</p>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-400">
+                    {l.business_name || '—'}
+                    <p className="text-[10px] text-slate-600">{l.service}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter border ${STATUS_CONFIG[l.status]?.color || STATUS_CONFIG.new.color}`}>
+                      {STATUS_CONFIG[l.status]?.label || 'New'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-xs text-slate-500">
+                    {new Date(l.created_at).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button onClick={() => onView(l)} className="p-2 hover:bg-cyan-500/10 hover:text-cyan-400 rounded-lg transition-all">
+                      <HiOutlineEye />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {filtered.length === 0 && (
+          <div className="p-20 text-center text-slate-600">No leads found matching filters.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function LeadDetailDrawer({ lead, onClose, onUpdate, onOnboard }) {
+  const [notes, setNotes] = useState("");
+  const [onboardData, setOnboardData] = useState({ project_value: 0, amount_paid: 0 });
+
+  useEffect(() => {
+    if (lead) {
+      setNotes(lead.notes || "");
+      setOnboardData({ project_value: 0, amount_paid: 0 });
+    }
+  }, [lead]);
+
+  if (!lead) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex justify-end">
+      <motion.div 
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" 
+      />
+      <motion.div 
+        initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className="relative w-full max-w-xl bg-slate-900 border-l border-white/10 shadow-2xl flex flex-col"
+      >
+        <div className="p-8 border-b border-white/5 flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-black text-white">{lead.name}</h3>
+            <p className="text-sm text-slate-500">{lead.service} • {lead.business_type}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-all">
+            <HiOutlineXMark className="text-2xl" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email</p>
+              <p className="text-sm text-slate-200">{lead.email}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Phone</p>
+              <p className="text-sm text-slate-200">{lead.phone}</p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Pipeline Status</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(STATUS_CONFIG).map(s => (
+                <button
+                  key={s}
+                  onClick={() => onUpdate(lead.id, { status: s })}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                    lead.status === s ? STATUS_CONFIG[s].color : "border-white/5 text-slate-500 hover:border-white/10"
+                  }`}
+                >
+                  {STATUS_CONFIG[s].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Customer Message</p>
+            <div className="p-6 rounded-3xl bg-white/5 border border-white/5 italic text-slate-300 text-sm leading-relaxed">
+              "{lead.message}"
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Internal Notes</p>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={() => onUpdate(lead.id, { notes })}
+              placeholder="Add your thoughts after talking to the client..."
+              className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-cyan-500/50 transition-all resize-none"
+            />
+          </div>
+
+          {lead.status === "contacted" && (
+            <div className="p-8 rounded-[2.5rem] bg-cyan-500/5 border border-cyan-500/20 space-y-6">
+              <div className="flex items-center gap-3">
+                <HiOutlineCheckBadge className="text-3xl text-cyan-400" />
+                <h4 className="text-lg font-black text-white">Ready to Onboard?</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Project Value (₹)</label>
+                  <input 
+                    type="number" 
+                    value={onboardData.project_value}
+                    onChange={e => setOnboardData({...onboardData, project_value: e.target.value})}
+                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Initial Paid (₹)</label>
+                  <input 
+                    type="number" 
+                    value={onboardData.amount_paid}
+                    onChange={e => setOnboardData({...onboardData, amount_paid: e.target.value})}
+                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" 
+                  />
+                </div>
+              </div>
+              <button 
+                onClick={() => onOnboard(lead, onboardData)}
+                className="w-full py-4 rounded-2xl bg-cyan-500 text-slate-950 font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                Onboard as Active Client
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function ImportPreviewModal({ rows, onClose, onConfirm, loading }) {
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" />
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="relative w-full max-w-4xl bg-slate-900 border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+        <div className="p-8 border-b border-white/5 flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-black text-white">Import Leads Preview</h3>
+            <p className="text-sm text-slate-500">{rows.length} records found in file</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+            <HiOutlineXMark className="text-2xl" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto p-6 custom-scrollbar">
+          <table className="w-full text-left text-xs">
+            <thead className="sticky top-0 bg-slate-900">
+              <tr className="border-b border-white/10">
+                <th className="p-3 text-slate-500">Name</th>
+                <th className="p-3 text-slate-500">Email</th>
+                <th className="p-3 text-slate-500">Phone</th>
+                <th className="p-3 text-slate-500">Service</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {rows.slice(0, 50).map((r, i) => (
+                <tr key={i}>
+                  <td className="p-3 text-white font-medium">{r.name}</td>
+                  <td className="p-3 text-slate-400">{r.email}</td>
+                  <td className="p-3 text-slate-400">{r.phone}</td>
+                  <td className="p-3 text-slate-500">{r.service}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {rows.length > 50 && <p className="p-4 text-center text-slate-600">Showing first 50 rows...</p>}
+        </div>
+        <div className="p-8 border-t border-white/5 bg-white/[0.02] flex justify-end gap-4">
+          <button onClick={onClose} className="px-6 py-2 text-sm font-bold text-slate-400 hover:text-white transition-all">Cancel</button>
+          <button 
+            onClick={onConfirm} 
+            disabled={loading}
+            className="btn-primary px-8 py-3 text-sm font-black flex items-center gap-2"
+          >
+            {loading && <HiOutlineArrowPath className="animate-spin" />}
+            Confirm Import
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function ClientsSection({ clients, onView }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {clients.map(c => {
+        const remaining = parseFloat(c.project_value) - parseFloat(c.amount_paid);
+        const progress = (parseFloat(c.amount_paid) / parseFloat(c.project_value)) * 100;
+        
+        return (
+          <div 
+            key={c.id} 
+            onClick={() => onView(c)}
+            className="glass-panel p-8 rounded-[2.5rem] border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer group"
+          >
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h4 className="text-xl font-black text-white group-hover:text-cyan-400 transition-all">{c.name}</h4>
+                <p className="text-sm text-slate-500">{c.business_name || 'Personal Project'}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Service</p>
+                <p className="text-sm text-cyan-400 font-bold">{c.service}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500 font-bold">PAYMENT PROGRESS</span>
+                <span className="text-white font-black">₹{parseFloat(c.amount_paid).toLocaleString()} / ₹{parseFloat(c.project_value).toLocaleString()}</span>
+              </div>
+              <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                <motion.div 
+                  initial={{ width: 0 }} animate={{ width: `${progress}%` }}
+                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500" 
+                />
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <HiOutlineClock className="text-amber-400" />
+                  <span className="text-[10px] font-bold text-amber-500 uppercase">{c.pending_tasks || 0} Tasks Pending</span>
+                </div>
+                {remaining > 0 ? (
+                  <span className="text-[10px] font-black text-red-400 bg-red-400/10 px-3 py-1 rounded-full uppercase tracking-tighter border border-red-400/20">
+                    ₹{remaining.toLocaleString()} DUE
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full uppercase tracking-tighter border border-emerald-400/20">
+                    PAID IN FULL
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      {clients.length === 0 && (
+        <div className="col-span-2 py-20 text-center glass-panel rounded-[2rem] border border-white/5">
+          <HiOutlineCheckBadge className="text-5xl text-slate-800 mx-auto mb-4" />
+          <p className="text-slate-500">No onboarded clients yet. Go to Leads to onboard someone!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ClientDetailDrawer({ client, tasks, onClose, onUpdate }) {
+  const [showTaskAdd, setShowTaskAdd] = useState(false);
+  const [newTask, setNewTask] = useState({ title: "", priority: "medium" });
+  const [newPaidAmount, setNewPaidAmount] = useState(0);
+
+  if (!client) return null;
+
+  const handleAddTask = async () => {
+    if (!newTask.title) return;
+    const token = localStorage.getItem("flownaticx_admin_token");
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ client_id: client.id, ...newTask }),
     });
+    if (res.ok) {
+      onUpdate();
+      setShowTaskAdd(false);
+      setNewTask({ title: "", priority: "medium" });
+    }
+  };
+
+  const updatePayment = async () => {
+    const token = localStorage.getItem("flownaticx_admin_token");
+    const res = await fetch("/api/clients", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id: client.id, amount_paid: parseFloat(client.amount_paid) + parseFloat(newPaidAmount) }),
+    });
+    if (res.ok) {
+      onUpdate();
+      setNewPaidAmount(0);
+    }
+  };
+
+  const toggleTask = async (task) => {
+    const token = localStorage.getItem("flownaticx_admin_token");
+    const newStatus = task.status === "completed" ? "pending" : "completed";
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id: task.id, status: newStatus }),
+    });
+    onUpdate();
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Top Bar */}
-      <header className="sticky top-0 z-40 border-b border-white/6 bg-slate-950/80 backdrop-blur-2xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <a href="/" className="logo-text">
-              <span className="logo-flow">Flow</span>
-              <span className="logo-natic">natic</span>
-              <span className="logo-x">X</span>
-            </a>
-            <div className="h-5 w-px bg-white/10" />
-            <span className="text-sm font-medium text-slate-400">Admin Dashboard</span>
+    <div className="fixed inset-0 z-[100] flex justify-end">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+      <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200 }} className="relative w-full max-w-2xl bg-slate-900 border-l border-white/10 shadow-2xl flex flex-col">
+        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+          <div>
+            <h3 className="text-2xl font-black text-white">{client.name}</h3>
+            <p className="text-sm text-cyan-400 font-bold">{client.service}</p>
           </div>
-          <div className="flex items-center gap-4">
-            {user && (
-              <div className="hidden items-center gap-2 sm:flex">
-                {user.picture && (
-                  <img src={user.picture} alt="" className="h-7 w-7 rounded-full" />
-                )}
-                <span className="text-sm text-slate-400">{user.email}</span>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={logout}
-              className="flex items-center gap-1.5 rounded-xl border border-white/8 bg-white/4 px-3.5 py-2 text-sm text-slate-400 transition hover:bg-white/8 hover:text-white"
-            >
-              <HiOutlineArrowRightOnRectangle className="text-base" />
-              Logout
-            </button>
-          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full"><HiOutlineXMark className="text-2xl" /></button>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        {/* Navigation Tabs */}
-        <div className="mb-8 flex gap-2 border-b border-white/6 pb-4">
-          {[
-            { id: "leads", label: "Leads Tracking", icon: HiOutlineUsers },
-            { id: "sales", label: "Sales & Revenue", icon: HiOutlineCurrencyRupee },
-            { id: "clients", label: "Clients Onboarded", icon: HiOutlineCheckBadge },
-            { id: "tasks", label: "Tasks & Projects", icon: HiOutlineListBullet },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                activeTab === tab.id
-                  ? "bg-white/10 text-white border border-white/10"
-                  : "text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              <tab.icon className="text-base" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        {activeTab === "leads" && (
-          <>
-            {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { label: "Total Leads", value: totalLeads, icon: HiOutlineUsers, color: "text-cyan-400", bg: "from-cyan-500/8 to-blue-500/8" },
-                { label: "Today", value: todayLeads, icon: HiOutlineCalendarDays, color: "text-emerald-400", bg: "from-emerald-500/8 to-teal-500/8" },
-                { label: "This Week", value: weekLeads, icon: HiOutlineArrowTrendingUp, color: "text-violet-400", bg: "from-violet-500/8 to-purple-500/8" },
-                { label: "Pending (New)", value: newLeads, icon: HiOutlineChartBar, color: "text-amber-400", bg: "from-amber-500/8 to-orange-500/8" },
-              ].map((stat) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-panel rounded-[var(--radius-card)] p-5"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{stat.label}</p>
-                      <p className="mt-1 text-3xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                        {stat.value}
-                      </p>
-                    </div>
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.bg}`}>
-                      <stat.icon className={`text-xl ${stat.color}`} />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Controls */}
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {/* Service Filter */}
-                <div className="flex items-center gap-2">
-                  <HiOutlineFunnel className="text-sm text-slate-500" />
-                  <select
-                    value={filterService}
-                    onChange={(e) => setFilterService(e.target.value)}
-                    className="rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm text-white outline-none [&>option]:bg-slate-900"
-                  >
-                    <option value="all">All Services</option>
-                    {services.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
+        <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+          <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10"><HiOutlineBanknotes className="text-8xl" /></div>
+            <div className="relative z-10">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Financial Status</p>
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <p className="text-3xl font-black text-white">₹{parseFloat(client.amount_paid).toLocaleString()}</p>
+                  <p className="text-[10px] font-bold text-emerald-400 uppercase">Received</p>
                 </div>
-
-                {/* Status Filter */}
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="rounded-xl border border-white/10 bg-white/4 px-3 py-2 text-sm text-white outline-none [&>option]:bg-slate-900"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="new">New</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="converted">Converted</option>
-                  <option value="lost">Lost</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => exportToCSV(leads, "flownaticx_leads")}
-                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/4 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/8"
-                >
-                  <HiOutlineArrowDownTray className="text-base" />
-                  Export CSV
-                </button>
-                <button
-                  type="button"
-                  onClick={fetchLeads}
-                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/4 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/8"
-                >
-                  <HiOutlineArrowPath className={`text-base ${loading ? "animate-spin" : ""}`} />
-                  Refresh
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Leads Table (Moved inside conditional) */}
-        {activeTab === "leads" && (
-          <div className="mt-6 overflow-hidden rounded-[var(--radius-card)] border border-white/6">
-            {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <span className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-cyan-400" />
-              </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <HiOutlineExclamationCircle className="mb-3 text-4xl text-red-400" />
-                <p className="text-slate-400">{error}</p>
-                <button type="button" onClick={fetchLeads} className="btn-secondary mt-4 text-sm">
-                  Retry
-                </button>
-              </div>
-            ) : filteredLeads.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <HiOutlineUsers className="mb-3 text-4xl text-slate-600" />
-                <p className="text-slate-400">No leads found.</p>
-                <p className="mt-1 text-xs text-slate-600">Leads will appear here when someone submits the contact form.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-white/6 bg-white/3">
-                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Contact</th>
-                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Business</th>
-                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Date</th>
-                      <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/4">
-                    {filteredLeads.map((lead) => {
-                      const sc = STATUS_CONFIG[lead.status] || STATUS_CONFIG.new;
-                      return (
-                        <tr key={lead.id} className="transition hover:bg-white/3">
-                          <td className="px-5 py-4">
-                            <p className="font-medium text-white">{lead.name}</p>
-                            <p className="text-[10px] text-slate-500">{lead.service}</p>
-                          </td>
-                          <td className="px-5 py-4">
-                            <p className="text-xs text-slate-300">{lead.email}</p>
-                            <p className="text-[10px] text-slate-500">{lead.phone}</p>
-                          </td>
-                          <td className="px-5 py-4">
-                            <p className="text-sm text-slate-400">{lead.business_name || "—"}</p>
-                            <p className="text-[10px] text-slate-500">{lead.business_type}</p>
-                          </td>
-                          <td className="px-5 py-4">
-                            <select
-                              value={lead.status}
-                              onChange={(e) => updateStatus(lead.id, e.target.value)}
-                              className={`rounded-lg border px-2.5 py-1 text-xs font-medium outline-none ${sc.color} [&>option]:bg-slate-900 [&>option]:text-white`}
-                            >
-                              <option value="new">New</option>
-                              <option value="contacted">Contacted</option>
-                              <option value="converted">Converted</option>
-                              <option value="lost">Lost</option>
-                            </select>
-                          </td>
-                          <td className="px-5 py-4 text-xs text-slate-500">{formatDate(lead.created_at)}</td>
-                          <td className="px-5 py-4">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedLead(lead)}
-                              className="flex items-center gap-1 rounded-lg bg-white/4 px-3 py-1.5 text-xs text-slate-300 transition hover:bg-white/8"
-                            >
-                              <HiOutlineEye className="text-sm" />
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Sales & Revenue Tab */}
-        {activeTab === "sales" && (
-          <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-3">
-              {[
-                { 
-                  label: "Total Revenue", 
-                  value: `₹${leads.reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0).toLocaleString("en-IN")}`, 
-                  icon: HiOutlineCurrencyRupee, 
-                  color: "text-emerald-400" 
-                },
-                { 
-                  label: "Avg. Deal Value", 
-                  value: `₹${leads.filter(l => (parseFloat(l.revenue) || 0) > 0).length > 0 
-                    ? (leads.reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0) / leads.filter(l => (parseFloat(l.revenue) || 0) > 0).length).toLocaleString("en-IN") 
-                    : 0}`, 
-                  icon: HiOutlineArrowTrendingUp, 
-                  color: "text-cyan-400" 
-                },
-                { 
-                  label: "Conversion Rate", 
-                  value: `${leads.length > 0 ? ((leads.filter(l => l.status === "converted").length / leads.length) * 100).toFixed(1) : 0}%`, 
-                  icon: HiOutlineChartBar, 
-                  color: "text-violet-400" 
-                },
-              ].map((s) => (
-                <div key={s.label} className="glass-panel rounded-3xl p-6">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{s.label}</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <s.icon className={`text-2xl ${s.color}`} />
-                    <p className="text-3xl font-black text-white">{s.value}</p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-3xl font-black text-red-400">₹{parseFloat(client.amount_remaining).toLocaleString()}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Remaining</p>
                 </div>
-              ))}
-            </div>
-            
-            <div className="glass-panel rounded-3xl p-8">
-              <h3 className="text-lg font-bold text-white mb-6">Revenue by Service</h3>
-              <div className="space-y-4">
-                {["Design & Branding", "Automation Systems", "Web Development"].map((service) => {
-                  const serviceRevenue = leads
-                    .filter(l => l.service === service)
-                    .reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0);
-                  const totalRev = leads.reduce((acc, l) => acc + (parseFloat(l.revenue) || 0), 0);
-                  const percentage = totalRev > 0 ? (serviceRevenue / totalRev) * 100 : 0;
-                  
-                  return (
-                    <div key={service}>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-400">{service}</span>
-                        <span className="text-white font-bold">₹{serviceRevenue.toLocaleString("en-IN")}</span>
-                      </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percentage}%` }}
-                          className="h-full bg-cyan-500" 
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
-              <p className="mt-8 text-sm text-slate-500 text-center italic">
-                Revenue tracking is live. Click on any lead in the "Leads Tracking" tab to set its deal value.
-              </p>
+              <div className="mt-8 flex gap-3">
+                <input 
+                  type="number" value={newPaidAmount} onChange={e => setNewPaidAmount(e.target.value)}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white outline-none"
+                  placeholder="Payment amount..."
+                />
+                <button onClick={updatePayment} className="btn-primary px-6 py-3 text-xs font-black">Add Payment</button>
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Clients Tab */}
-        {activeTab === "clients" && (
-          <div className="glass-panel rounded-3xl p-12 text-center">
-            <HiOutlineCheckBadge className="mx-auto text-5xl text-slate-700 mb-4" />
-            <h3 className="text-xl font-bold text-white">No Onboarded Clients Yet</h3>
-            <p className="mt-2 text-slate-400 max-w-md mx-auto">
-              When a lead is converted, they will appear here as an active client where you can manage their specific projects and subscriptions.
-            </p>
-            <button 
-              onClick={() => setActiveTab("leads")}
-              className="mt-6 btn-primary px-6 py-2.5 text-sm"
-            >
-              Go to Leads Tracking
-            </button>
-          </div>
-        )}
-
-        {/* Tasks Tab */}
-        {activeTab === "tasks" && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-white">Project Tasks</h3>
-              <button className="btn-secondary text-xs px-4 py-2">Add New Task</button>
+              <h4 className="text-lg font-black text-white">Project Roadmap</h4>
+              <button onClick={() => setShowTaskAdd(!showTaskAdd)} className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-cyan-300">
+                <HiOutlinePlus /> Add Task
+              </button>
             </div>
-            <div className="grid gap-4">
-              <div className="glass-panel rounded-2xl p-6 border-l-4 border-amber-500">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded">Pending</span>
-                    <h4 className="mt-2 font-bold text-white">Website SEO Audit Implementation</h4>
-                    <p className="text-sm text-slate-500 mt-1">Complete the dynamic meta tags and legal pages setup.</p>
-                  </div>
-                  <span className="text-xs text-slate-500">Due: 28 Apr</span>
+
+            {showTaskAdd && (
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+                <input 
+                  autoFocus value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white" placeholder="Task title..." 
+                />
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setShowTaskAdd(false)} className="px-4 py-2 text-xs text-slate-500">Cancel</button>
+                  <button onClick={handleAddTask} className="px-4 py-2 bg-cyan-500 rounded-lg text-slate-950 text-xs font-bold">Add</button>
                 </div>
-              </div>
-              <div className="glass-panel rounded-2xl p-6 border-l-4 border-cyan-500 opacity-60">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-500 bg-cyan-500/10 px-2 py-1 rounded">Ongoing</span>
-                    <h4 className="mt-2 font-bold text-white">Admin Dashboard Expansion</h4>
-                    <p className="text-sm text-slate-500 mt-1">Implementing sales analytics and CSV export logic.</p>
+              </motion.div>
+            )}
+
+            <div className="space-y-3">
+              {tasks.map(t => (
+                <div key={t.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 group hover:border-white/10 transition-all">
+                  <button onClick={() => toggleTask(t)} className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                    t.status === 'completed' ? "bg-emerald-500 border-emerald-500 text-slate-950" : "border-white/20 hover:border-cyan-500"
+                  }`}>
+                    {t.status === 'completed' && <HiOutlineCheckCircle />}
+                  </button>
+                  <div className="flex-1">
+                    <p className={`text-sm font-bold ${t.status === 'completed' ? "text-slate-500 line-through" : "text-slate-200"}`}>{t.title}</p>
+                    <p className="text-[10px] text-slate-600 font-medium uppercase tracking-tighter">{t.priority} Priority</p>
                   </div>
-                  <span className="text-xs text-slate-500">Due: Today</span>
                 </div>
-              </div>
+              ))}
+              {tasks.length === 0 && <p className="text-center py-10 text-slate-600 text-sm italic">No tasks added yet.</p>}
             </div>
           </div>
-        )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
-        {/* Total count */}
-        {!loading && !error && (
-          <p className="mt-3 text-xs text-slate-600">
-            Showing {filteredLeads.length} of {totalLeads} leads
-          </p>
-        )}
-      </main>
+function TasksSection({ tasks, clients, onRefresh }) {
+  const groups = {
+    pending: tasks.filter(t => t.status === 'pending'),
+    ongoing: tasks.filter(t => t.status === 'ongoing'),
+    completed: tasks.filter(t => t.status === 'completed')
+  };
 
-      {/* Lead Detail Modal */}
-      <AnimatePresence>
-        {selectedLead && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 px-6 backdrop-blur-lg"
-            onClick={() => setSelectedLead(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.99 }}
-              transition={{ duration: 0.3, ease: premiumEase }}
-              className="glass-panel premium-surface relative w-full max-w-lg rounded-[2rem] p-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedLead(null)}
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-slate-900/80 text-slate-400 transition hover:text-white"
+  const handleUpdateStatus = async (id, status) => {
+    const token = localStorage.getItem("flownaticx_admin_token");
+    await fetch("/api/tasks", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id, status }),
+    });
+    onRefresh();
+  };
+
+  const priorityColor = { low: "text-slate-500", medium: "text-cyan-400", high: "text-red-400" };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {Object.keys(groups).map(col => (
+        <div key={col} className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">{col} ({groups[col].length})</h4>
+          </div>
+          <div className="space-y-4">
+            {groups[col].map(t => (
+              <motion.div 
+                layoutId={t.id} key={t.id}
+                className="glass-panel p-5 rounded-3xl border border-white/5 hover:border-white/10 transition-all space-y-4"
               >
-                <HiOutlineXMark />
-              </button>
+                <div className="flex justify-between items-start">
+                  <p className="text-sm font-bold text-white leading-tight">{t.title}</p>
+                  <span className={`text-[10px] font-bold ${priorityColor[t.priority]}`}>{t.priority}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded bg-white/5 border border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                    {t.client_name?.charAt(0)}
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate">{t.client_name}</p>
+                </div>
+                <div className="flex gap-2 pt-2 border-t border-white/5">
+                  {col !== 'pending' && <button onClick={() => handleUpdateStatus(t.id, 'pending')} className="text-[10px] font-bold text-slate-600 hover:text-white uppercase">Move Pending</button>}
+                  {col !== 'ongoing' && <button onClick={() => handleUpdateStatus(t.id, 'ongoing')} className="text-[10px] font-bold text-cyan-600 hover:text-cyan-400 uppercase">Start Work</button>}
+                  {col !== 'completed' && <button onClick={() => handleUpdateStatus(t.id, 'completed')} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-400 uppercase">Complete</button>}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-              <h3 className="text-xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                Lead Details
-              </h3>
+function RevenueSection({ clients }) {
+  const total = clients.reduce((acc, c) => acc + parseFloat(c.amount_paid || 0), 0);
+  const totalRemaining = clients.reduce((acc, c) => acc + (parseFloat(c.project_value || 0) - parseFloat(c.amount_paid || 0)), 0);
+  
+  const byService = clients.reduce((acc, c) => {
+    acc[c.service] = (acc[c.service] || 0) + parseFloat(c.amount_paid || 0);
+    return acc;
+  }, {});
 
-              <div className="mt-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Name</p>
-                    <p className="mt-1 text-white">{selectedLead.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Service</p>
-                    <p className="mt-1 text-cyan-400 text-sm">{selectedLead.service}</p>
-                  </div>
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="glass-panel p-10 rounded-[3rem] border border-white/5 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5">
+          <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Collected Revenue</p>
+          <h3 className="text-5xl font-black text-white">₹{total.toLocaleString()}</h3>
+        </div>
+        <div className="glass-panel p-10 rounded-[3rem] border border-white/5">
+          <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Accounts Receivable</p>
+          <h3 className="text-5xl font-black text-red-400">₹{totalRemaining.toLocaleString()}</h3>
+        </div>
+      </div>
+
+      <div className="glass-panel p-10 rounded-[3rem] border border-white/5 space-y-10">
+        <h4 className="text-xl font-black text-white">Revenue by Service</h4>
+        <div className="space-y-8">
+          {Object.entries(byService).map(([service, amount]) => {
+            const perc = (amount / total) * 100;
+            return (
+              <div key={service} className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <p className="font-bold text-slate-300">{service}</p>
+                  <p className="font-black text-white">₹{amount.toLocaleString()}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Email</p>
-                    <p className="mt-1 text-white text-sm">{selectedLead.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Phone</p>
-                    <p className="mt-1 text-white text-sm">{selectedLead.phone}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Business</p>
-                    <p className="mt-1 text-white">{selectedLead.business_name || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Type</p>
-                    <p className="mt-1 text-white">{selectedLead.business_type || "Not specified"}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Message</p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-300 bg-white/4 p-4 rounded-2xl border border-white/5">
-                    {selectedLead.message}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between gap-6 bg-white/4 p-4 rounded-2xl border border-white/5">
-                  <div className="flex-1">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Deal Value (₹)</p>
-                    <input 
-                      type="number"
-                      defaultValue={selectedLead.revenue || 0}
-                      onBlur={(e) => updateRevenue(selectedLead.id, e.target.value)}
-                      className="mt-1 w-full bg-transparent text-emerald-400 font-bold outline-none text-xl"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Status</p>
-                    <select
-                      value={selectedLead.status}
-                      onChange={(e) => updateStatus(selectedLead.id, e.target.value)}
-                      className={`mt-1 w-full rounded-lg border px-3 py-1.5 text-sm font-medium outline-none ${
-                        (STATUS_CONFIG[selectedLead.status] || STATUS_CONFIG.new).color
-                      } [&>option]:bg-slate-900 [&>option]:text-white`}
-                    >
-                      <option value="new">New</option>
-                      <option value="contacted">Contacted</option>
-                      <option value="converted">Converted</option>
-                      <option value="lost">Lost</option>
-                    </select>
-                  </div>
+                <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${perc}%` }} className="h-full bg-cyan-500" />
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
