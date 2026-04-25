@@ -19,6 +19,8 @@ import p4 from "../assets/projects/project4.jpg";
 import p5 from "../assets/projects/project5.jpg";
 import p6 from "../assets/projects/project6.jpg";
 import p7 from "../assets/projects/project7.jpg";
+import saharImg from "../assets/projects/sahar_institute.png";
+import jawaharImg from "../assets/projects/jawahar_hotel.png";
 
 const serviceTabs = [
   { id: "all", label: "All Work", icon: null },
@@ -67,22 +69,22 @@ const items = [
   },
   // ─── Landing Pages & Websites ───
   {
-    img: p1,
-    title: "Academy Landing Page",
-    client: "TechStart Academy",
+    img: saharImg,
+    title: "Sahar Institute Landing Page",
+    client: "Sahar Institute",
     cat: "web",
-    type: "Landing Page",
-    desc: "High-converting landing page for online course ads. Achieved 12% conversion rate.",
-    link: "#",
+    type: "EdTech Landing Page",
+    desc: "High-converting educational landing page for NEET & JEE coaching with optimized CTA sections.",
+    link: "https://preview--sahar-dream-launch.lovable.app/",
   },
   {
-    img: p2,
-    title: "Gym Membership Portal",
-    client: "FitZone Gym",
+    img: jawaharImg,
+    title: "Jawahar Hotel Website",
+    client: "Jawahar Hotel",
     cat: "web",
-    type: "Multi-page Website",
-    desc: "Full business website with membership plans, class schedules, and online registration.",
-    link: "#",
+    type: "Restaurant Website",
+    desc: "A premium Mughlai restaurant landing page showcasing traditional recipes and multiple locations.",
+    link: "https://jawaharhotel.my.canva.site/",
   },
   // ─── Automation ───
   {
