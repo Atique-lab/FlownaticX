@@ -11,6 +11,7 @@ import {
 } from "react-icons/hi2";
 import ScrollReveal from "../components/ScrollReveal";
 import { premiumEase } from "../components/revealVariants";
+import SEO from "../components/SEO";
 
 import p1 from "../assets/projects/project1.jpg";
 import p2 from "../assets/projects/project2.jpg";
@@ -160,6 +161,10 @@ export default function PortfolioPage() {
 
   return (
     <>
+      <SEO 
+        title="Our Portfolio" 
+        description="Explore the premium designs, automation systems, and high-converting websites built by FlownaticX for global clients."
+      />
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pt-32 pb-16 text-center">
         <div className="page-gradient" />

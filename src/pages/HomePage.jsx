@@ -26,6 +26,7 @@ import {
   viewportOnce,
 } from "../components/revealVariants";
 import TiltCard from "../components/TiltCard";
+import SEO from "../components/SEO";
 
 /* ─── TEXT CYCLE ─── */
 const cycleWords = [
@@ -168,6 +169,10 @@ export default function HomePage() {
 
   return (
     <>
+      <SEO 
+        title="Digital Growth Agency" 
+        description="FlownaticX helps Institutes, Restaurants, Gyms & Local Businesses get more customers with premium design, automation, and high-converting websites."
+      />
       {/* ══════════ HERO ══════════ */}
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 pt-28 pb-20 text-center">
         <div className="hero-gradient absolute inset-0 opacity-90" />

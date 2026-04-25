@@ -14,6 +14,7 @@ import {
 } from "react-icons/hi2";
 import { SiWhatsapp } from "react-icons/si";
 import { premiumEase } from "../components/revealVariants";
+import SEO from "../components/SEO";
 
 export default function ContactPage() {
   const location = useLocation();
@@ -60,6 +61,15 @@ export default function ContactPage() {
 
       setStatus("success");
 
+      // Conversion Tracking
+      if (window.dataLayer) {
+        window.dataLayer.push({
+          event: "lead_form_submission",
+          service: data.service,
+          businessType: data.businessType,
+        });
+      }
+
       // Professional WhatsApp redirect
       const whatsappMsg = encodeURIComponent(
         `Hi FlownaticX! I just submitted a request on your website.\n\n` +
@@ -79,6 +89,10 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen">
+      <SEO 
+        title="Contact Us" 
+        description="Ready to scale your business? Get in touch with FlownaticX for custom design, automation, and web development solutions."
+      />
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pt-32 pb-16 text-center">
         <div className="page-gradient" />

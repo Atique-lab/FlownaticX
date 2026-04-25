@@ -20,6 +20,7 @@ import {
   staggerContainer,
 } from "../components/revealVariants";
 import TiltCard from "../components/TiltCard";
+import SEO from "../components/SEO";
 
 /* ════════════════════════════════════════════
    PRICING DATA
@@ -318,6 +319,10 @@ export default function PricingPage() {
 
   return (
     <>
+      <SEO 
+        title="Pricing Plans" 
+        description="Explore our transparent pricing for Design, Automation, and Web Development. Plans starting at just ₹4,999/mo."
+      />
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pt-32 pb-10 text-center">
         <div className="page-gradient" />

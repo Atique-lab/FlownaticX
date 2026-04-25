@@ -154,6 +154,10 @@ export default function Footer() {
           <p className="text-xs text-slate-500">
             &copy; {new Date().getFullYear()} FlownaticX. All rights reserved.
           </p>
+          <div className="flex flex-wrap justify-center gap-6 text-[10px] uppercase tracking-[0.2em] text-slate-600">
+            <Link to="/privacy-policy" className="transition hover:text-cyan-400">Privacy Policy</Link>
+            <Link to="/terms" className="transition hover:text-cyan-400">Terms of Service</Link>
+          </div>
           <p className="text-xs text-slate-500">
             Crafted with passion by FlownaticX
           </p>
