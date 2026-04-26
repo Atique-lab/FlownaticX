@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       )
     `;
 
-    // ── Safe column additions for existing tables ──
+    // ── Safe column additions and Indexing ──
     const alterCmds = [
       sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS notes TEXT`,
       sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45)`,
@@ -71,6 +71,21 @@ export default async function handler(req, res) {
       sql`ALTER TABLE clients ADD COLUMN IF NOT EXISTS service VARCHAR(255)`,
       sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE`,
       sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority VARCHAR(20) DEFAULT 'medium'`,
+      
+      // Optimization: Unique constraint to prevent duplicate imports (same email and phone)
+      // Only add if not already present (using a DO block for safety in Postgres)
+      sql`DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'unique_lead_identity') THEN
+              ALTER TABLE leads ADD CONSTRAINT unique_lead_identity UNIQUE (email, phone);
+            END IF;
+          END $$;`,
+
+      // Optimization: Indexes for faster filtering and sorting
+      sql`CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status)`,
+      sql`CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC)`,
+      sql`CREATE INDEX IF NOT EXISTS idx_tasks_client_id ON tasks(client_id)`,
+      sql`CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)`,
     ];
 
     for (const cmd of alterCmds) {

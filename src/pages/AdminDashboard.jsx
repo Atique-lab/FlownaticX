@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   HiOutlineUsers,
@@ -11,7 +11,10 @@ import {
   HiOutlineListBullet,
 } from "react-icons/hi2";
 
-// Import custom sections
+// Hooks & Utils
+import { useLeads, useClients, useTasks, useUpdateLead, useOnboardClient, useImportLeads } from "../hooks/useAdminData";
+
+// Components
 import { DashboardOverview } from "../components/Admin/DashboardOverview";
 import { LeadsSection, LeadDetailDrawer, ImportPreviewModal } from "../components/Admin/LeadsSection";
 import { ClientsSection, ClientDetailDrawer } from "../components/Admin/ClientsSection";
@@ -30,109 +33,37 @@ const STATUS_CONFIG = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const [leads, setLeads] = useState([]);
-  const [clients, setClients] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [user, setUser] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importRows, setImportRows] = useState([]);
-  const [isImporting, setIsImporting] = useState(false);
 
-  const getToken = useCallback(() => localStorage.getItem("flownaticx_admin_token"), []);
+  // Data Queries
+  const { data: leads = [], isLoading: leadsLoading, refetch: refetchLeads } = useLeads();
+  const { data: clients = [], isLoading: clientsLoading, refetch: refetchClients } = useClients();
+  const { data: tasks = [], isLoading: tasksLoading, refetch: refetchTasks } = useTasks();
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    const token = getToken();
-    try {
-      const [leadsRes, clientsRes, tasksRes] = await Promise.all([
-        fetch("/api/leads", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/clients", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/tasks", { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
+  // Mutations
+  const updateLeadMutation = useUpdateLead();
+  const onboardClientMutation = useOnboardClient();
+  const importLeadsMutation = useImportLeads();
 
-      if (leadsRes.status === 401) {
-        logout();
-        return;
-      }
-
-      const [leadsData, clientsData, tasksData] = await Promise.all([
-        leadsRes.json(),
-        clientsRes.json(),
-        tasksRes.json(),
-      ]);
-
-      if (leadsData.success) setLeads(leadsData.leads);
-      if (clientsData.success) setClients(clientsData.clients);
-      if (tasksData.success) setTasks(tasksData.tasks);
-    } catch (err) {
-      console.error("Fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      navigate("/admin", { replace: true });
-      return;
-    }
-    const userData = localStorage.getItem("flownaticx_admin_user");
-    if (userData) setUser(JSON.parse(userData));
-    fetchData();
-  }, [navigate, getToken, fetchData]);
+  const user = useMemo(() => {
+    const data = sessionStorage.getItem("flownaticx_admin_user");
+    return data ? JSON.parse(data) : null;
+  }, []);
 
   const logout = () => {
-    localStorage.removeItem("flownaticx_admin_token");
-    localStorage.removeItem("flownaticx_admin_user");
+    sessionStorage.removeItem("flownaticx_admin_token");
+    sessionStorage.removeItem("flownaticx_admin_user");
     navigate("/admin", { replace: true });
   };
 
-  const updateLead = async (id, updates) => {
-    try {
-      await fetch("/api/leads", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ id, ...updates }),
-      });
-      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, ...updates } : l)));
-      if (selectedLead?.id === id) setSelectedLead({ ...selectedLead, ...updates });
-    } catch (err) { console.error(err); }
-  };
-
-  const onboardClient = async (lead, dealInfo) => {
-    try {
-      const res = await fetch("/api/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({
-          lead_id: lead.id,
-          name: lead.name,
-          email: lead.email,
-          phone: lead.phone,
-          business_name: lead.business_name,
-          service: lead.service,
-          ...dealInfo,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setClients([data.client, ...clients]);
-        setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status: 'converted' } : l));
-        setSelectedLead(null);
-        setActiveTab("clients");
-      }
-    } catch (err) { console.error(err); }
-  };
-
-  const exportLeads = () => {
+  const handleExportLeads = () => {
     if (!leads.length) return;
-    const headers = ["Name", "Email", "Phone", "Business", "Service", "Status", "Date"].join(",");
+    const headers = ["Name", "Email", "Phone", "Business Name", "Business Type", "Service", "Status", "Date"].join(",");
     const rows = leads.map(l => [
-      `"${l.name}"`, `"${l.email}"`, `"${l.phone}"`, `"${l.business_name}"`, `"${l.service}"`, `"${l.status}"`, `"${l.created_at}"`
+      `"${l.name}"`, `"${l.email || ""}"`, `"${l.phone || ""}"`, `"${l.business_name || ""}"`, `"${l.business_type || ""}"`, `"${l.service || ""}"`, `"${l.status}"`, `"${l.created_at}"`
     ].join(","));
     const blob = new Blob([[headers, ...rows].join("\n")], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -148,34 +79,27 @@ export default function AdminDashboard() {
     const reader = new FileReader();
     reader.onload = (evt) => {
       let text = evt.target.result;
-      // Remove BOM if present
       text = text.replace(/^\uFEFF/, "");
-      
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return;
 
-      // Better CSV parser to handle quotes and commas
       const parseLine = (line) => {
         const result = [];
         let current = '';
         let inQuotes = false;
         for (let i = 0; i < line.length; i++) {
           const char = line[i];
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
+          if (char === '"') inQuotes = !inQuotes;
+          else if (char === ',' && !inQuotes) {
             result.push(current.trim());
             current = '';
-          } else {
-            current += char;
-          }
+          } else current += char;
         }
         result.push(current.trim());
         return result.map(v => v.replace(/^"|"$/g, ''));
       };
 
       const headers = parseLine(lines[0]).map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
-      
       if (!headers.includes("name")) {
         alert("Error: CSV must have at least a 'name' column.");
         return;
@@ -184,9 +108,7 @@ export default function AdminDashboard() {
       const rows = lines.slice(1).map(line => {
         const values = parseLine(line);
         const obj = {};
-        headers.forEach((h, i) => {
-          if (h) obj[h] = values[i] || "";
-        });
+        headers.forEach((h, i) => { if (h) obj[h] = values[i] || ""; });
         return obj;
       });
       setImportRows(rows);
@@ -196,33 +118,22 @@ export default function AdminDashboard() {
   };
 
   const confirmImport = async () => {
-    setIsImporting(true);
     try {
-      const res = await fetch("/api/import-leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ rows: importRows }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert(`Successfully imported ${data.imported} leads!${data.skipped > 0 ? ` (${data.skipped} skipped)` : ""}`);
-        fetchData();
-        setShowImportModal(false);
-        setImportRows([]);
-      } else {
-        alert("Error: " + (data.error || "Failed to import leads"));
-      }
-    } catch (err) { 
-      console.error(err); 
-      alert("An error occurred during import.");
+      const data = await importLeadsMutation.mutateAsync(importRows);
+      alert(`Successfully imported ${data.imported} leads!${data.skipped > 0 ? ` (${data.skipped} skipped)` : ""}`);
+      setShowImportModal(false);
+      setImportRows([]);
+    } catch (err) {
+      alert("Error: " + err.message);
     }
-    finally { setIsImporting(false); }
   };
+
+  const isLoading = leadsLoading || clientsLoading || tasksLoading;
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-200 overflow-hidden">
       {/* ── Sidebar ── */}
-      <aside className="w-64 border-r border-white/5 bg-slate-900/50 flex flex-col">
+      <aside className="w-64 border-r border-white/5 bg-slate-900/50 flex flex-col z-30">
         <div className="p-6">
           <a href="/" className="logo-text text-xl">
             <span className="logo-flow">Flow</span><span className="logo-natic">natic</span><span className="logo-x">X</span>
@@ -277,8 +188,8 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-bold text-white capitalize">{activeTab}</h2>
           <div className="flex items-center gap-4">
             <button 
-              onClick={fetchData} 
-              className={`p-2 rounded-lg hover:bg-white/5 transition-all ${loading ? 'animate-spin' : ''}`}
+              onClick={() => { refetchLeads(); refetchClients(); refetchTasks(); }} 
+              className={`p-2 rounded-lg hover:bg-white/5 transition-all ${isLoading ? 'animate-spin' : ''}`}
             >
               <HiOutlineArrowPath className="text-slate-400" />
             </button>
@@ -300,13 +211,13 @@ export default function AdminDashboard() {
                   leads={leads} 
                   services={[...new Set(leads.map(l => l.service).filter(Boolean))]} 
                   onView={setSelectedLead}
-                  onExport={exportLeads}
+                  onExport={handleExportLeads}
                   onImport={handleImportCSV}
                   STATUS_CONFIG={STATUS_CONFIG}
                 />
               )}
               {activeTab === "clients" && <ClientsSection clients={clients} onView={setSelectedClient} />}
-              {activeTab === "tasks" && <TasksSection tasks={tasks} clients={clients} onRefresh={fetchData} />}
+              {activeTab === "tasks" && <TasksSection tasks={tasks} clients={clients} onRefresh={() => { refetchTasks(); refetchClients(); }} />}
               {activeTab === "revenue" && <RevenueSection clients={clients} />}
             </motion.div>
           </AnimatePresence>
@@ -316,22 +227,22 @@ export default function AdminDashboard() {
         <LeadDetailDrawer 
           lead={selectedLead} 
           onClose={() => setSelectedLead(null)} 
-          onUpdate={updateLead} 
-          onOnboard={onboardClient} 
+          onUpdate={(id, updates) => updateLeadMutation.mutate({ id, ...updates })} 
+          onOnboard={(lead, deal) => onboardClientMutation.mutate({ ...deal, lead_id: lead.id, name: lead.name, email: lead.email, phone: lead.phone, business_name: lead.business_name, service: lead.service })} 
           STATUS_CONFIG={STATUS_CONFIG}
         />
         <ClientDetailDrawer
           client={selectedClient}
           tasks={tasks.filter(t => t.client_id === selectedClient?.id)}
           onClose={() => setSelectedClient(null)}
-          onUpdate={fetchData}
+          onUpdate={() => { refetchClients(); refetchTasks(); }}
         />
         {showImportModal && (
           <ImportPreviewModal 
             rows={importRows} 
             onClose={() => setShowImportModal(false)} 
             onConfirm={confirmImport} 
-            loading={isImporting}
+            loading={importLeadsMutation.isPending}
           />
         )}
       </main>

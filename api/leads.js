@@ -1,43 +1,26 @@
 import { neon } from "@neondatabase/serverless";
-import jwt from "jsonwebtoken";
+import { setCors, authGuard, handleMethodNotAllowed } from "./_utils/middleware.js";
+import { leadSchema } from "./_utils/schemas.js";
 
 export default async function handler(req, res) {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    "https://flownaticx.com",
-    "https://flownaticx.vercel.app",
-    "http://localhost:5173", // Local development
-  ];
-
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", "https://flownaticx.com");
-  }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
+  setCors(req, res);
   if (req.method === "OPTIONS") return res.status(200).end();
 
   const sql = neon(process.env.DATABASE_URL);
 
   if (req.method === "POST") {
     try {
-      const { name, email, phone, businessName, businessType, service, message } = req.body;
-
-      // 1. Basic Validation
-      if (!name || !email || !phone || !message) {
-        return res.status(400).json({ error: "All required fields must be filled." });
+      const validation = leadSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validation.error.format() 
+        });
       }
 
-      // 2. Regex Validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^\+?[\d\s-]{10,}$/;
-      if (!emailRegex.test(email)) return res.status(400).json({ error: "Invalid email format." });
-      if (!phoneRegex.test(phone)) return res.status(400).json({ error: "Invalid phone format." });
+      const { name, email, phone, businessName, businessType, service, message } = validation.data;
 
-      // 3. Rate Limiting (IP Based)
+      // Rate Limiting (IP Based)
       const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
       const recentLeads = await sql`
         SELECT COUNT(*) FROM leads 
@@ -45,13 +28,13 @@ export default async function handler(req, res) {
         AND created_at > NOW() - INTERVAL '10 minutes'
       `;
       
-      if (parseInt(recentLeads[0].count) >= 3) {
-        return res.status(429).json({ error: "Too many requests. Please try again in 10 minutes." });
+      if (parseInt(recentLeads[0].count) >= 5) {
+        return res.status(429).json({ error: "Too many requests. Please try again later." });
       }
 
       const result = await sql`
         INSERT INTO leads (name, email, phone, business_name, business_type, service, message, ip_address)
-        VALUES (${name}, ${email}, ${phone}, ${businessName || ""}, ${businessType || ""}, ${service || ""}, ${message}, ${ip})
+        VALUES (${name.trim()}, ${email?.trim().toLowerCase() || null}, ${phone?.trim() || null}, ${businessName?.trim() || ""}, ${businessType?.trim() || ""}, ${service?.trim() || ""}, ${message.trim()}, ${ip})
         RETURNING id, created_at
       `;
 
@@ -61,55 +44,45 @@ export default async function handler(req, res) {
       });
     } catch (error) {
       console.error("Lead save error:", error);
-      return res.status(500).json({ error: "Failed to save lead. Please try again." });
+      return res.status(500).json({ error: "Failed to save lead." });
     }
   }
 
   if (req.method === "GET") {
+    const user = authGuard(req, res);
+    if (!user) return;
+
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      const token = authHeader.split(" ")[1];
-      jwt.verify(token, process.env.JWT_SECRET);
-
-      const leads = await sql`
-        SELECT * FROM leads ORDER BY created_at DESC
-      `;
-
+      const leads = await sql`SELECT * FROM leads ORDER BY created_at DESC`;
       return res.status(200).json({ success: true, leads });
-    } catch {
-      return res.status(401).json({ error: "Invalid token" });
+    } catch (err) {
+      return res.status(500).json({ error: "Failed to fetch leads" });
     }
   }
 
   if (req.method === "PATCH") {
+    const user = authGuard(req, res);
+    if (!user) return;
+
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith("Bearer ")) return res.status(401).json({ error: "Unauthorized" });
-
-      const token = authHeader.split(" ")[1];
-      jwt.verify(token, process.env.JWT_SECRET);
-
       const { id, status, revenue, notes } = req.body;
+      if (!id) return res.status(400).json({ error: "ID required" });
       
-      if (status !== undefined) {
-        await sql`UPDATE leads SET status = ${status} WHERE id = ${id}`;
-      }
-      if (revenue !== undefined) {
-        await sql`UPDATE leads SET revenue = ${revenue} WHERE id = ${id}`;
-      }
-      if (notes !== undefined) {
-        await sql`UPDATE leads SET notes = ${notes} WHERE id = ${id}`;
+      const updates = [];
+      if (status !== undefined) updates.push(sql`status = ${status}`);
+      if (revenue !== undefined) updates.push(sql`revenue = ${revenue}`);
+      if (notes !== undefined) updates.push(sql`notes = ${notes}`);
+
+      if (updates.length > 0) {
+        await sql`UPDATE leads SET ${updates.join(', ')} WHERE id = ${id}`;
       }
 
       return res.status(200).json({ success: true });
-    } catch {
-      return res.status(401).json({ error: "Invalid token" });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Update failed" });
     }
   }
 
-  return res.status(405).json({ error: "Method not allowed" });
+  return handleMethodNotAllowed(req, res, ["GET", "POST", "PATCH"]);
 }

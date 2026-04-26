@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   HiOutlineFunnel, 
   HiOutlineArrowUpTray, 
@@ -7,23 +7,53 @@ import {
   HiOutlineEye, 
   HiOutlineXMark,
   HiOutlineCheckBadge,
-  HiOutlineArrowPath
+  HiOutlineArrowPath,
+  HiOutlineMagnifyingGlass,
+  HiOutlineTrash,
+  HiOutlineChevronDown
 } from "react-icons/hi2";
 
-export function LeadsSection({ leads, services, onView, onExport, onImport, STATUS_CONFIG }) {
+export function LeadsSection({ leads, services, onView, onExport, onImport, onBulkUpdate, STATUS_CONFIG }) {
   const [filterService, setFilterService] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState([]);
 
-  const filtered = leads.filter(l => {
-    if (filterService !== "all" && l.service !== filterService) return false;
-    if (filterStatus !== "all" && l.status !== filterStatus) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return leads.filter(l => {
+      const matchesService = filterService === "all" || l.service === filterService;
+      const matchesStatus = filterStatus === "all" || l.status === filterStatus;
+      const searchStr = `${l.name} ${l.email || ""} ${l.phone || ""} ${l.business_name || ""}`.toLowerCase();
+      const matchesSearch = search.toLowerCase().split(" ").every(term => searchStr.includes(term));
+      return matchesService && matchesStatus && matchesSearch;
+    });
+  }, [leads, filterService, filterStatus, search]);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filtered.length) setSelectedIds([]);
+    else setSelectedIds(filtered.map(l => l.id));
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl w-64 focus-within:border-cyan-500/50 transition-all">
+            <HiOutlineMagnifyingGlass className="text-slate-500" />
+            <input 
+              type="text" 
+              placeholder="Search leads..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="bg-transparent text-sm text-slate-300 outline-none w-full"
+            />
+          </div>
+
           <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
             <HiOutlineFunnel className="text-slate-500" />
             <select 
@@ -63,11 +93,51 @@ export function LeadsSection({ leads, services, onView, onExport, onImport, STAT
         </div>
       </div>
 
+      {/* Bulk Actions Bar */}
+      <AnimatePresence>
+        {selectedIds.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex items-center justify-between px-6 py-3 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl"
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-bold text-cyan-400">{selectedIds.length} leads selected</span>
+              <div className="h-4 w-px bg-white/10" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 uppercase font-bold tracking-widest">Mark as:</span>
+                {Object.keys(STATUS_CONFIG).map(s => (
+                  <button 
+                    key={s}
+                    onClick={() => { onBulkUpdate?.(selectedIds, { status: s }); setSelectedIds([]); }}
+                    className="px-3 py-1 rounded-lg text-[10px] font-bold border border-white/5 hover:bg-white/5 transition-all uppercase"
+                  >
+                    {STATUS_CONFIG[s].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+              <HiOutlineTrash />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="glass-panel border border-white/5 rounded-[2rem] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[800px]">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
+                <th className="px-6 py-4 w-10">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedIds.length === filtered.length && filtered.length > 0}
+                    onChange={toggleSelectAll}
+                    className="accent-cyan-500 rounded border-white/10 bg-white/5"
+                  />
+                </th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Lead Info</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Business</th>
                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</th>
@@ -77,7 +147,15 @@ export function LeadsSection({ leads, services, onView, onExport, onImport, STAT
             </thead>
             <tbody className="divide-y divide-white/5">
               {filtered.map(l => (
-                <tr key={l.id} className="hover:bg-white/[0.02] transition-all group">
+                <tr key={l.id} className={`hover:bg-white/[0.02] transition-all group ${selectedIds.includes(l.id) ? 'bg-cyan-500/5' : ''}`}>
+                  <td className="px-6 py-4">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(l.id)}
+                      onChange={() => toggleSelect(l.id)}
+                      className="accent-cyan-500 rounded border-white/10 bg-white/5"
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <p className="font-bold text-white group-hover:text-cyan-400 transition-colors">{l.name}</p>
                     <div className="flex flex-col gap-0.5 mt-1">

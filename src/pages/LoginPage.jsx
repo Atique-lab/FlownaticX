@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   // Check if already authenticated
   useEffect(() => {
-    const token = localStorage.getItem("flownaticx_admin_token");
+    const token = sessionStorage.getItem("flownaticx_admin_token");
     if (token) {
       navigate("/admin/dashboard", { replace: true });
     }
@@ -33,9 +33,9 @@ export default function LoginPage() {
           return;
         }
 
-        // Store token and user info
-        localStorage.setItem("flownaticx_admin_token", data.token);
-        localStorage.setItem("flownaticx_admin_user", JSON.stringify(data.user));
+        // Store token and user info (sessionStorage for automatic logout on tab close)
+        sessionStorage.setItem("flownaticx_admin_token", data.token);
+        sessionStorage.setItem("flownaticx_admin_user", JSON.stringify(data.user));
         navigate("/admin/dashboard", { replace: true });
       } catch (err) {
         console.error("Auth error:", err);
