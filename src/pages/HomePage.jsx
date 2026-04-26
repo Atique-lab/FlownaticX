@@ -19,6 +19,7 @@ import {
 } from "react-icons/hi2";
 import { SiWhatsapp } from "react-icons/si";
 import ScrollReveal from "../components/ScrollReveal";
+import Magnetic from "../components/Magnetic";
 import {
   cardVariant,
   premiumEase,
@@ -236,16 +237,20 @@ export default function HomePage() {
             transition={{ delay: 0.55, duration: 0.5 }}
             className="mt-12 flex flex-wrap justify-center gap-4"
           >
-            <Link
-              to="/pricing"
-              className="btn-primary flex items-center gap-2 px-10 py-4 text-base font-bold"
-            >
-              Explore Growth Plans
-              <HiOutlineArrowRight className="text-lg" />
-            </Link>
-            <Link to="/portfolio" className="btn-secondary flex items-center gap-2 px-10 py-4 text-base font-bold">
-              View Our Work
-            </Link>
+            <Magnetic>
+              <Link
+                to="/pricing"
+                className="btn-primary flex items-center gap-2 px-10 py-4 text-base font-bold"
+              >
+                Explore Growth Plans
+                <HiOutlineArrowRight className="text-lg" />
+              </Link>
+            </Magnetic>
+            <Magnetic>
+              <Link to="/portfolio" className="btn-secondary flex items-center gap-2 px-10 py-4 text-base font-bold">
+                View Our Work
+              </Link>
+            </Magnetic>
           </motion.div>
 
           {/* Removed Trusted By Bar */}

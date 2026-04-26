@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HiOutlineBars3, HiXMark } from "react-icons/hi2";
+import Magnetic from "./Magnetic";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -49,15 +50,17 @@ export default function Navbar() {
       >
         <div className="container-section flex h-16 items-center justify-between md:h-[4.5rem]">
           {/* Text Logo */}
-          <Link
-            to="/"
-            className="logo-text relative z-50 flex items-center"
-            aria-label="FlownaticX Home"
-          >
-            <span className="logo-flow">Flow</span>
-            <span className="logo-natic">natic</span>
-            <span className="logo-x">X</span>
-          </Link>
+          <Magnetic strength={0.2}>
+            <Link
+              to="/"
+              className="logo-text relative z-50 flex items-center"
+              aria-label="FlownaticX Home"
+            >
+              <span className="logo-flow">Flow</span>
+              <span className="logo-natic">natic</span>
+              <span className="logo-x">X</span>
+            </Link>
+          </Magnetic>
 
           {/* Desktop Links */}
           <div className="hidden items-center gap-1 md:flex">
