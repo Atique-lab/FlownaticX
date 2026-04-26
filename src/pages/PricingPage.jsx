@@ -11,6 +11,7 @@ import {
   HiOutlineClock,
   HiOutlineArrowRight,
   HiOutlineExclamationTriangle,
+  HiOutlineStar,
 } from "react-icons/hi2";
 import { SiWhatsapp } from "react-icons/si";
 import ScrollReveal from "../components/ScrollReveal";
@@ -315,7 +316,7 @@ const categories = [
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [currency, setCurrency] = useState("INR"); // "INR" | "USD"
-  const activeCat = categories[activeTab];
+  const activeCat = categories[activeTab] || categories[0];
 
   return (
     <>
@@ -435,17 +436,20 @@ export default function PricingPage() {
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={`${activeCat.id}-${currency}`}
+              key={`${activeCat?.id || activeTab}-${currency}`}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.35, ease: premiumEase }}
             >
               <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-6 lg:grid-cols-3">
-                {activeCat.plans.map((plan) => {
+                {activeCat?.plans?.map((plan) => {
                   const price = currency === "INR" ? plan.priceINR : plan.priceUSD;
                   const original = currency === "INR" ? plan.originalINR : plan.originalUSD;
                   const symbol = currency === "INR" ? "₹" : "$";
+
+                  const saveVal = parseInt(original?.replace(/,/g, "") || "0") - parseInt(price?.replace(/,/g, "") || "0");
+                  const saveFormatted = currency === "INR" ? saveVal.toLocaleString("en-IN") : saveVal.toLocaleString("en-US");
 
                   return (
                     <motion.div key={plan.name} variants={cardVariant}>
@@ -491,10 +495,7 @@ export default function PricingPage() {
                             </div>
                             <p className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
                               <HiOutlineFire className="text-sm" />
-                              Save {symbol}{currency === "INR"
-                                ? (parseInt(original.replace(/,/g, "")) - parseInt(price.replace(/,/g, ""))).toLocaleString("en-IN")
-                                : (parseInt(original.replace(/,/g, "")) - parseInt(price.replace(/,/g, ""))).toLocaleString("en-US")
-                              }
+                              Save {symbol}{saveFormatted}
                             </p>
                           </div>
 
