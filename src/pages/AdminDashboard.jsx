@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   HiOutlineUsers,
@@ -52,6 +52,14 @@ export default function AdminDashboard() {
     const data = sessionStorage.getItem("flownaticx_admin_user");
     return data ? JSON.parse(data) : null;
   }, []);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    const token = sessionStorage.getItem("flownaticx_admin_token");
+    if (!token) {
+      navigate("/admin", { replace: true });
+    }
+  }, [navigate]);
 
   const logout = () => {
     sessionStorage.removeItem("flownaticx_admin_token");
