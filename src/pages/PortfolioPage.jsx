@@ -70,7 +70,7 @@ const items = [
   },
   // ─── Landing Pages & Websites ───
   {
-    img: p1,
+    img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
     title: "Premium SaaS Design",
     client: "Figma Prototype",
     cat: "web",
@@ -79,7 +79,7 @@ const items = [
     link: "https://race-ocean-28642027.figma.site/",
   },
   {
-    img: saharImg,
+    img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop",
     title: "Sahar Institute Landing Page",
     client: "Sahar Institute",
     cat: "web",
@@ -88,7 +88,7 @@ const items = [
     link: "https://preview--sahar-dream-launch.lovable.app/",
   },
   {
-    img: jawaharImg,
+    img: "https://images.unsplash.com/photo-1551882547-ff43c63efe5c?q=80&w=1200&auto=format&fit=crop",
     title: "Jawahar Hotel Website",
     client: "Jawahar Hotel",
     cat: "web",
