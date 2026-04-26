@@ -190,23 +190,49 @@ export default function HomePage() {
         
         {/* Animated glowing orbs for GenZ vibe */}
         <motion.div 
-          animate={{ x: [0, 30, -20, 0], y: [0, -40, 20, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-[10%] top-[20%] h-[30rem] w-[30rem] rounded-full bg-cyan-500/20 blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ x: [0, -40, 30, 0], y: [0, 30, -30, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-[10%] top-[30%] h-[28rem] w-[28rem] rounded-full bg-violet-500/20 blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ x: [0, 20, -40, 0], y: [0, 40, -20, 0] }}
+          animate={{ x: [0, 40, -30, 0], y: [0, -50, 30, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-[40%] bottom-[10%] h-[25rem] w-[25rem] rounded-full bg-pink-500/15 blur-[120px]" 
+          className="absolute left-[10%] top-[20%] h-[35rem] w-[35rem] rounded-full bg-cyan-500/25 blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, -50, 40, 0], y: [0, 40, -40, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute right-[10%] top-[30%] h-[32rem] w-[32rem] rounded-full bg-violet-500/20 blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, 30, -50, 0], y: [0, 50, -30, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-[40%] bottom-[10%] h-[28rem] w-[28rem] rounded-full bg-emerald-500/15 blur-[120px]" 
         />
 
+        {/* Floating Sparkles (GenZ Vibe) */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ 
+              opacity: [0, 0.6, 0], 
+              scale: [0, 1.2, 0],
+              x: [0, (Math.random() - 0.5) * 100],
+              y: [0, (Math.random() - 0.5) * 100]
+            }}
+            transition={{ 
+              duration: 4 + Math.random() * 3, 
+              repeat: Infinity, 
+              delay: i * 0.4 
+            }}
+            className="absolute text-cyan-300 text-2xl pointer-events-none"
+            style={{ 
+              left: `${10 + Math.random() * 80}%`, 
+              top: `${15 + Math.random() * 70}%` 
+            }}
+          >
+            ✦
+          </motion.div>
+        ))}
+
         <motion.div
-          style={{ y: textY, opacity, scale }}
+          style={{ y: textY, opacity }}
           initial={{ opacity: 0, y: 30, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -214,10 +240,11 @@ export default function HomePage() {
         >
 
           <h1
-            className="text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
+            className="text-5xl font-extrabold leading-[1.1] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Scale Your{" "}
+            Dominate Your <span className="script-highlight">Market</span>
+            <br />
             <span className="heading-gradient relative inline-block min-w-[240px]">
               <AnimatePresence mode="wait">
                 <motion.span
@@ -225,15 +252,13 @@ export default function HomePage() {
                   initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -24 }}
-                  transition={{ duration: 0.5, ease: premiumEase }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                   className="inline-block"
                 >
                   {cycleWords[wordIndex]}
                 </motion.span>
               </AnimatePresence>
             </span>
-            <br />
-            Faster Than Ever.
           </h1>
 
           <motion.p
@@ -255,7 +280,7 @@ export default function HomePage() {
           >
             <Link
               to="/pricing"
-              className="btn-primary flex items-center gap-2 px-10 py-4 text-base font-bold shadow-cyan-500/20"
+              className="btn-primary flex items-center gap-2 px-10 py-4 text-base font-bold"
             >
               Explore Growth Plans
               <HiOutlineArrowRight className="text-lg" />

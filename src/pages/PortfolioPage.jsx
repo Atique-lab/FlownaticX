@@ -310,15 +310,17 @@ export default function PortfolioPage() {
               className="glass-panel premium-surface relative w-full max-w-5xl rounded-[2rem] p-6 outline-none md:p-10"
               onClick={(e) => e.stopPropagation()}
             >
-              <motion.img
-                key={filtered[currentIndex].img}
-                src={filtered[currentIndex].img}
-                alt={filtered[currentIndex].title}
-                initial={{ scale: 0.965, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.38, ease: premiumEase }}
-                className="max-h-[75vh] w-full rounded-[1.5rem] object-contain"
-              />
+              <div className="relative flex items-center justify-center">
+                <motion.img
+                  key={filtered[currentIndex].img}
+                  src={filtered[currentIndex].img}
+                  alt={filtered[currentIndex].title}
+                  initial={{ scale: 0.98, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  className="max-h-[82vh] w-auto max-w-full rounded-[1.5rem] object-contain shadow-2xl"
+                />
+              </div>
 
               <div className="mt-5 flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:text-left">
                 <div>
