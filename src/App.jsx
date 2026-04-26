@@ -2,6 +2,7 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Lenis from "@studio-freight/lenis";
 import CursorGlow from "./components/CursorGlow";
+import ScrollProgress from "./components/ScrollProgress";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import FloatingCTA from "./components/FloatingCTA";
@@ -78,6 +79,7 @@ export default function App() {
     <ErrorBoundary>
       <div className="app-shell">
       <div className="page-gradient" />
+      <ScrollProgress />
       <CursorGlow />
       <Navbar />
 

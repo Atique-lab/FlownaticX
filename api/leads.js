@@ -68,14 +68,14 @@ export default async function handler(req, res) {
       const { id, status, revenue, notes } = req.body;
       if (!id) return res.status(400).json({ error: "ID required" });
       
-      const updates = [];
-      if (status !== undefined) updates.push(sql`status = ${status}`);
-      if (revenue !== undefined) updates.push(sql`revenue = ${revenue}`);
-      if (notes !== undefined) updates.push(sql`notes = ${notes}`);
-
-      if (updates.length > 0) {
-        await sql`UPDATE leads SET ${updates.join(', ')} WHERE id = ${id}`;
-      }
+      await sql`
+        UPDATE leads 
+        SET 
+          status = COALESCE(${status || null}, status),
+          revenue = COALESCE(${revenue || null}, revenue),
+          notes = COALESCE(${notes || null}, notes)
+        WHERE id = ${id}
+      `;
 
       return res.status(200).json({ success: true });
     } catch (err) {
