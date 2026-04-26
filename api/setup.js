@@ -86,6 +86,7 @@ export default async function handler(req, res) {
       sql`CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC)`,
       sql`CREATE INDEX IF NOT EXISTS idx_tasks_client_id ON tasks(client_id)`,
       sql`CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)`,
+      sql`CREATE INDEX IF NOT EXISTS idx_clients_onboarded_at ON clients(onboarded_at DESC)`,
     ];
 
     for (const cmd of alterCmds) {

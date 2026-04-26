@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HiOutlinePaintBrush,
@@ -315,7 +315,14 @@ const categories = [
 
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState(0);
-  const [currency, setCurrency] = useState("INR"); // "INR" | "USD"
+  const [currency, setCurrency] = useState(() => {
+    return localStorage.getItem("flownaticx_currency") || "INR";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("flownaticx_currency", currency);
+  }, [currency]);
+
   const activeCat = categories[activeTab] || categories[0];
 
   return (
@@ -527,22 +534,17 @@ export default function PricingPage() {
                           )}
 
                           {/* CTA */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const whatsappMsg = encodeURIComponent(
-                                `Hi FlownaticX! I'm interested in the ${plan.name} plan for ${activeCat.label}.\n\n` +
-                                `💰 Price: ${symbol}${price}${plan.period}\n` +
-                                `🛠 Service: ${activeCat.label}\n\n` +
-                                `Please share the next steps for onboarding.`
-                              );
-                              window.open(`https://wa.me/918799783853?text=${whatsappMsg}`, "_blank");
-                            }}
+                          <a
+                            href={`https://wa.me/918799783853?text=${encodeURIComponent(
+                              `Hi FlownaticX! I'm interested in the ${plan.name} plan for ${activeCat.label}.\n\n💰 Price: ${symbol}${price}${plan.period}\n🛠 Service: ${activeCat.label}\n\nPlease share the next steps for onboarding.`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
                           >
                             Select {plan.name} Plan
                             <HiOutlineArrowRight className="text-xs" />
-                          </button>
+                          </a>
                         </div>
                       </TiltCard>
                     </motion.div>

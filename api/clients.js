@@ -1,40 +1,8 @@
 import { neon } from "@neondatabase/serverless";
-import jwt from "jsonwebtoken";
+import { withMiddleware } from "./_utils/middleware.js";
+import { clientOnboardSchema } from "./_utils/schemas.js";
 
-function setCors(req, res) {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    "https://flownaticx.com",
-    "https://flownaticx.vercel.app",
-    "http://localhost:5173",
-  ];
-  res.setHeader("Access-Control-Allow-Origin", allowedOrigins.includes(origin) ? origin : "https://flownaticx.com");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-}
-
-function authGuard(req, res) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
-    return null;
-  }
-  try {
-    jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET);
-    return true;
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
-    return null;
-  }
-}
-
-export default async function handler(req, res) {
-  setCors(req, res);
-  if (req.method === "OPTIONS") return res.status(200).end();
-
-  const auth = authGuard(req, res);
-  if (!auth) return;
-
+async function handler(req, res) {
   const sql = neon(process.env.DATABASE_URL);
 
   // GET — fetch all clients with revenue summary
@@ -62,16 +30,13 @@ export default async function handler(req, res) {
   // POST — onboard a new client from a lead
   if (req.method === "POST") {
     try {
-      const { lead_id, name, email, phone, business_name, service, project_value, amount_paid } = req.body;
-
-      if (!name || !service || !project_value) {
-        return res.status(400).json({ error: "Name, service, and project value are required." });
-      }
+      const validatedData = clientOnboardSchema.parse(req.body);
+      const { lead_id, name, email, phone, business_name, service, project_value, amount_paid } = validatedData;
 
       // Create client record
       const [client] = await sql`
         INSERT INTO clients (lead_id, name, email, phone, business_name, service, project_value, amount_paid)
-        VALUES (${lead_id || null}, ${name}, ${email || ""}, ${phone || ""}, ${business_name || ""}, ${service}, ${project_value}, ${amount_paid || 0})
+        VALUES (${lead_id || null}, ${name}, ${email || ""}, ${phone || ""}, ${business_name || ""}, ${service}, ${project_value || 0}, ${amount_paid || 0})
         RETURNING *
       `;
 
@@ -82,6 +47,9 @@ export default async function handler(req, res) {
 
       return res.status(201).json({ success: true, client });
     } catch (error) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       console.error("Client onboard error:", error);
       return res.status(500).json({ error: "Failed to onboard client." });
     }
@@ -111,6 +79,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Failed to update client." });
     }
   }
-
-  return res.status(405).json({ error: "Method not allowed" });
 }
+
+export default withMiddleware(["GET", "POST", "PATCH"], handler, { requiresAuth: true });

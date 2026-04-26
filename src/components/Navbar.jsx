@@ -127,14 +127,16 @@ export default function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-2xl md:hidden"
+            className="fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-2xl md:hidden flex items-center justify-center"
+            onClick={() => setMenuOpen(false)}
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.3, ease: premiumEase }}
-              className="flex h-full flex-col items-center justify-center gap-6"
+              className="flex flex-col items-center justify-center gap-6"
+              onClick={(e) => e.stopPropagation()}
             >
               {navLinks.map((link, i) => (
                 <motion.div

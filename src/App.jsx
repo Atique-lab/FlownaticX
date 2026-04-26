@@ -4,6 +4,7 @@ import CursorGlow from "./components/CursorGlow";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import FloatingCTA from "./components/FloatingCTA";
+import ErrorBoundary from "./components/ErrorBoundary";
 import HomePage from "./pages/HomePage";
 
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
@@ -16,6 +17,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function PageLoader() {
   return (
@@ -27,7 +29,8 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <div className="app-shell">
+    <ErrorBoundary>
+      <div className="app-shell">
       <div className="page-gradient" />
       <CursorGlow />
       <Navbar />
@@ -46,12 +49,14 @@ export default function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </main>
 
       <Footer />
       <FloatingCTA />
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

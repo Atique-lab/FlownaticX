@@ -1,40 +1,8 @@
 import { neon } from "@neondatabase/serverless";
-import jwt from "jsonwebtoken";
+import { withMiddleware } from "./_utils/middleware.js";
+import { taskCreateSchema, taskUpdateSchema } from "./_utils/schemas.js";
 
-function setCors(req, res) {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    "https://flownaticx.com",
-    "https://flownaticx.vercel.app",
-    "http://localhost:5173",
-  ];
-  res.setHeader("Access-Control-Allow-Origin", allowedOrigins.includes(origin) ? origin : "https://flownaticx.com");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-}
-
-function authGuard(req, res) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
-    return null;
-  }
-  try {
-    jwt.verify(authHeader.split(" ")[1], process.env.JWT_SECRET);
-    return true;
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
-    return null;
-  }
-}
-
-export default async function handler(req, res) {
-  setCors(req, res);
-  if (req.method === "OPTIONS") return res.status(200).end();
-
-  const auth = authGuard(req, res);
-  if (!auth) return;
-
+async function handler(req, res) {
   const sql = neon(process.env.DATABASE_URL);
 
   // GET — fetch all tasks, optionally filter by client_id
@@ -67,11 +35,8 @@ export default async function handler(req, res) {
   // POST — create a new task for a client
   if (req.method === "POST") {
     try {
-      const { client_id, title, description, priority, due_date } = req.body;
-
-      if (!client_id || !title) {
-        return res.status(400).json({ error: "Client ID and task title are required." });
-      }
+      const validatedData = taskCreateSchema.parse(req.body);
+      const { client_id, title, description, priority, due_date } = validatedData;
 
       const [task] = await sql`
         INSERT INTO tasks (client_id, title, description, priority, due_date)
@@ -81,6 +46,9 @@ export default async function handler(req, res) {
 
       return res.status(201).json({ success: true, task });
     } catch (error) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       console.error("Task create error:", error);
       return res.status(500).json({ error: "Failed to create task." });
     }
@@ -89,8 +57,8 @@ export default async function handler(req, res) {
   // PATCH — update task status
   if (req.method === "PATCH") {
     try {
-      const { id, status, title, description, priority, due_date } = req.body;
-      if (!id) return res.status(400).json({ error: "Task ID is required." });
+      const validatedData = taskUpdateSchema.parse(req.body);
+      const { id, status, title, description, priority, due_date } = validatedData;
 
       const completed_at = status === "completed" ? new Date().toISOString() : null;
 
@@ -109,6 +77,9 @@ export default async function handler(req, res) {
       const [updated] = await sql`SELECT * FROM tasks WHERE id = ${id}`;
       return res.status(200).json({ success: true, task: updated });
     } catch (error) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
       console.error("Task update error:", error);
       return res.status(500).json({ error: "Failed to update task." });
     }
@@ -126,6 +97,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Failed to delete task." });
     }
   }
-
-  return res.status(405).json({ error: "Method not allowed" });
 }
+
+export default withMiddleware(["GET", "POST", "PATCH", "DELETE"], handler, { requiresAuth: true });

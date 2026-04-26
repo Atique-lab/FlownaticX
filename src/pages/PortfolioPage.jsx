@@ -244,6 +244,7 @@ export default function PortfolioPage() {
                       <motion.img
                         src={item.img}
                         alt={item.title}
+                        loading="lazy"
                         whileHover={{ scale: 1.06 }}
                         transition={{ duration: 0.45, ease: premiumEase }}
                         className="h-full w-full object-cover object-center"
