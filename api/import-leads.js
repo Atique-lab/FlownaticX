@@ -29,7 +29,6 @@ function authGuard(req, res) {
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const phoneRegex = /^\+?[\d\s\-().]{7,}$/;
 
 export default async function handler(req, res) {
   setCors(req, res);
@@ -54,20 +53,21 @@ export default async function handler(req, res) {
     for (const row of rows) {
       const { name, email, phone, business_name, business_type, service, message } = row;
 
-      // Validate required fields
-      if (!name || !email || !phone) {
-        skipped.push({ row, reason: "Missing name, email, or phone" });
+      // Validate required fields (Only name is absolutely required for a lead)
+      if (!name) {
+        skipped.push({ row, reason: "Missing name" });
         continue;
       }
 
-      if (!emailRegex.test(email)) {
-        skipped.push({ row, reason: `Invalid email: ${email}` });
-        continue;
-      }
-
-      if (!phoneRegex.test(phone)) {
-        skipped.push({ row, reason: `Invalid phone: ${phone}` });
-        continue;
+      // Process email
+      let processedEmail = email ? email.trim().toLowerCase() : "";
+      if (processedEmail && !emailRegex.test(processedEmail)) {
+        // If it's a known placeholder or clearly not an email, we store it but maybe it shouldn't block the import
+        // For now, let's allow it if it's not empty, but if it doesn't match regex, we'll still store it
+        // unless it's a specific "no email" placeholder which we might want to nullify
+        if (processedEmail.includes("didn't have") || processedEmail.includes("no email")) {
+          processedEmail = ""; 
+        }
       }
 
       try {
@@ -75,12 +75,12 @@ export default async function handler(req, res) {
           INSERT INTO leads (name, email, phone, business_name, business_type, service, message)
           VALUES (
             ${name.trim()},
-            ${email.trim().toLowerCase()},
-            ${phone.trim()},
-            ${(business_name || "").trim()},
-            ${(business_type || "").trim()},
-            ${(service || "").trim()},
-            ${(message || "").trim()}
+            ${processedEmail || null},
+            ${(phone || "").trim() || null},
+            ${(business_name || "").trim() || null},
+            ${(business_type || "").trim() || null},
+            ${(service || "").trim() || null},
+            ${(message || "").trim() || null}
           )
           ON CONFLICT DO NOTHING
         `;

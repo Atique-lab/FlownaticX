@@ -80,11 +80,29 @@ export function LeadsSection({ leads, services, onView, onExport, onImport, STAT
                 <tr key={l.id} className="hover:bg-white/[0.02] transition-all group">
                   <td className="px-6 py-4">
                     <p className="font-bold text-white group-hover:text-cyan-400 transition-colors">{l.name}</p>
-                    <p className="text-xs text-slate-500">{l.email}</p>
+                    <div className="flex flex-col gap-0.5 mt-1">
+                      <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-slate-700" />
+                        {l.email || 'No Email'}
+                      </p>
+                      <p className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-slate-800" />
+                        {l.phone || 'No Phone'}
+                      </p>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-400">
-                    {l.business_name || '—'}
-                    <p className="text-[10px] text-slate-600">{l.service}</p>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-medium text-slate-300">{l.business_name || '—'}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-[10px] font-bold text-cyan-500/80 bg-cyan-500/5 px-2 py-0.5 rounded border border-cyan-500/10 uppercase tracking-tighter">
+                        {l.service || 'General'}
+                      </span>
+                      {l.business_type && (
+                        <span className="text-[10px] text-slate-500 italic">
+                          • {l.business_type}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter border ${STATUS_CONFIG[l.status]?.color || STATUS_CONFIG.new.color}`}>
@@ -252,18 +270,24 @@ export function ImportPreviewModal({ rows, onClose, onConfirm, loading }) {
             <thead className="sticky top-0 bg-slate-900">
               <tr className="border-b border-white/10">
                 <th className="p-3 text-slate-500">Name</th>
-                <th className="p-3 text-slate-500">Email</th>
-                <th className="p-3 text-slate-500">Phone</th>
-                <th className="p-3 text-slate-500">Service</th>
+                <th className="p-3 text-slate-500">Email/Phone</th>
+                <th className="p-3 text-slate-500">Business</th>
+                <th className="p-3 text-slate-500">Service/Type</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {rows.slice(0, 50).map((r, i) => (
                 <tr key={i}>
                   <td className="p-3 text-white font-medium">{r.name}</td>
-                  <td className="p-3 text-slate-400">{r.email}</td>
-                  <td className="p-3 text-slate-400">{r.phone}</td>
-                  <td className="p-3 text-slate-500">{r.service}</td>
+                  <td className="p-3">
+                    <p className="text-slate-400">{r.email || '—'}</p>
+                    <p className="text-[10px] text-slate-600">{r.phone || '—'}</p>
+                  </td>
+                  <td className="p-3 text-slate-400">{r.business_name || '—'}</td>
+                  <td className="p-3">
+                    <p className="text-slate-500">{r.service || '—'}</p>
+                    <p className="text-[10px] text-slate-700 italic">{r.business_type || '—'}</p>
+                  </td>
                 </tr>
               ))}
             </tbody>

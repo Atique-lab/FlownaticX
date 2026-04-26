@@ -147,13 +147,46 @@ export default function AdminDashboard() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const text = evt.target.result;
-      const lines = text.split("\n").filter(l => l.trim());
-      const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/"/g, ''));
+      let text = evt.target.result;
+      // Remove BOM if present
+      text = text.replace(/^\uFEFF/, "");
+      
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) return;
+
+      // Better CSV parser to handle quotes and commas
+      const parseLine = (line) => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result.map(v => v.replace(/^"|"$/g, ''));
+      };
+
+      const headers = parseLine(lines[0]).map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
+      
+      if (!headers.includes("name")) {
+        alert("Error: CSV must have at least a 'name' column.");
+        return;
+      }
+
       const rows = lines.slice(1).map(line => {
-        const values = line.split(",").map(v => v.trim().replace(/"/g, ''));
+        const values = parseLine(line);
         const obj = {};
-        headers.forEach((h, i) => obj[h] = values[i]);
+        headers.forEach((h, i) => {
+          if (h) obj[h] = values[i] || "";
+        });
         return obj;
       });
       setImportRows(rows);
@@ -172,11 +205,17 @@ export default function AdminDashboard() {
       });
       const data = await res.json();
       if (data.success) {
+        alert(`Successfully imported ${data.imported} leads!${data.skipped > 0 ? ` (${data.skipped} skipped)` : ""}`);
         fetchData();
         setShowImportModal(false);
         setImportRows([]);
+      } else {
+        alert("Error: " + (data.error || "Failed to import leads"));
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+      alert("An error occurred during import.");
+    }
     finally { setIsImporting(false); }
   };
 
