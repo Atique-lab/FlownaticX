@@ -325,7 +325,6 @@ export default function PricingPage() {
       />
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pt-32 pb-10 text-center">
-        <div className="page-gradient" />
         <div className="soft-grid" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}

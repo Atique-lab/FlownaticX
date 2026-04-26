@@ -48,13 +48,13 @@ const founders = [
   {
     name: "Atique",
     role: "Founder & CEO",
-    img: "/founder.png",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&h=256&auto=format&fit=crop",
     desc: "Visionary technologist and growth strategist who founded FlownaticX with a mission to make premium digital growth accessible to every local business.",
   },
   {
     name: "Saizel",
     role: "Co-Founder & COO",
-    img: "/cofounder.png",
+    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&h=256&auto=format&fit=crop",
     desc: "Operations mastermind who ensures every project is delivered on time, on budget, and beyond expectations. The backbone of FlownaticX's execution engine.",
   },
 ];
@@ -64,7 +64,6 @@ export default function AboutPage() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pt-32 pb-16 text-center">
-        <div className="page-gradient" />
         <div className="soft-grid" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}

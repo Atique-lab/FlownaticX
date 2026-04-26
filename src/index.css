@@ -102,22 +102,9 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.12;
 }
 
-.app-shell::before {
-  width: 40rem;
-  height: 40rem;
-  top: -10rem;
-  left: -15rem;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, transparent 70%);
-  animation: floatBlob 20s ease-in-out infinite;
-}
-
+.app-shell::before,
 .app-shell::after {
-  width: 35rem;
-  height: 35rem;
-  bottom: -10rem;
-  right: -10rem;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%);
-  animation: floatBlob 25s ease-in-out infinite reverse;
+  display: none;
 }
 
 /* ───────────────────────────────────────────
@@ -173,7 +160,6 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
   color: transparent;
   filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.35));
-  font-style: italic;
 }
 
 /* ───────────────────────────────────────────
@@ -425,19 +411,22 @@ h1, h2, h3, h4, h5, h6 {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.15), transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(168, 85, 247, 0.15), transparent 40%),
-    radial-gradient(circle at 50% 90%, rgba(52, 211, 153, 0.12), transparent 50%),
-    linear-gradient(180deg, #020617 0%, #030712 100%);
-  animation: bgPulse 15s ease-in-out infinite alternate;
+    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.22), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(168, 85, 247, 0.2), transparent 45%),
+    radial-gradient(circle at 50% 90%, rgba(52, 211, 153, 0.15), transparent 60%),
+    linear-gradient(180deg, #020617 0%, #010410 100%);
+  background-size: 200% 200%;
+  animation: bgPulse 20s ease infinite alternate;
 }
 
 /* ───────────────────────────────────────────
    ANIMATIONS
    ─────────────────────────────────────────── */
 @keyframes bgPulse {
-  0% { transform: scale(1); filter: hue-rotate(0deg); }
-  100% { transform: scale(1.05); filter: hue-rotate(15deg); }
+  0% { transform: scale(1) translate(0, 0); filter: hue-rotate(0deg); }
+  33% { transform: scale(1.1) translate(2%, -2%); filter: hue-rotate(10deg); }
+  66% { transform: scale(1.05) translate(-1%, 2%); filter: hue-rotate(-5deg); }
+  100% { transform: scale(1.15) translate(1%, 1%); filter: hue-rotate(15deg); }
 }
 
 @keyframes gradientShift {

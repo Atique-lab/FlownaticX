@@ -139,6 +139,11 @@ export default function PortfolioPage() {
       : items.filter((item) => item.cat === activeFilter);
 
   const openPopup = (index) => {
+    const item = filtered[index];
+    if (item.link && item.cat === "web") {
+      window.open(item.link, "_blank", "noopener,noreferrer");
+      return;
+    }
     setLastFocusedIndex(index);
     setCurrentIndex(index);
   };
@@ -176,7 +181,6 @@ export default function PortfolioPage() {
       />
       {/* Hero */}
       <section className="relative overflow-hidden px-6 pt-32 pb-16 text-center">
-        <div className="page-gradient" />
         <div className="soft-grid" />
         <motion.div
           initial={{ opacity: 0, y: 24 }}

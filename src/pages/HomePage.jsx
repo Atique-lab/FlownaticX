@@ -185,51 +185,9 @@ export default function HomePage() {
       />
       {/* ══════════ HERO ══════════ */}
       <section ref={heroRef} className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 pt-28 pb-20 text-center">
-        <div className="hero-gradient absolute inset-0 opacity-90" />
         <div className="soft-grid" />
         
-        {/* Animated glowing orbs for GenZ vibe */}
-        <motion.div 
-          animate={{ x: [0, 40, -30, 0], y: [0, -50, 30, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-[10%] top-[20%] h-[35rem] w-[35rem] rounded-full bg-cyan-500/25 blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ x: [0, -50, 40, 0], y: [0, 40, -40, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute right-[10%] top-[30%] h-[32rem] w-[32rem] rounded-full bg-violet-500/20 blur-[120px]" 
-        />
-        <motion.div 
-          animate={{ x: [0, 30, -50, 0], y: [0, 50, -30, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-[40%] bottom-[10%] h-[28rem] w-[28rem] rounded-full bg-emerald-500/15 blur-[120px]" 
-        />
-
-        {/* Floating Sparkles (GenZ Vibe) */}
-        {[...Array(12)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: [0, 0.6, 0], 
-              scale: [0, 1.2, 0],
-              x: [0, (Math.random() - 0.5) * 100],
-              y: [0, (Math.random() - 0.5) * 100]
-            }}
-            transition={{ 
-              duration: 4 + Math.random() * 3, 
-              repeat: Infinity, 
-              delay: i * 0.4 
-            }}
-            className="absolute text-cyan-300 text-2xl pointer-events-none"
-            style={{ 
-              left: `${10 + Math.random() * 80}%`, 
-              top: `${15 + Math.random() * 70}%` 
-            }}
-          >
-            ✦
-          </motion.div>
-        ))}
+        {/* Removed Animated glowing orbs and sparkles */}
 
         <motion.div
           style={{ y: textY, opacity }}
@@ -456,7 +414,7 @@ export default function HomePage() {
       {/* ══════════ CTA ══════════ */}
       <section className="py-[var(--section-padding)]">
         <div className="container-section">
-          <div className="hero-gradient relative overflow-hidden rounded-[2rem] px-8 py-20 text-center">
+          <div className="relative overflow-hidden rounded-[2rem] px-8 py-20 text-center border border-white/5">
             <div className="soft-grid opacity-20" />
             <div className="glass-panel premium-surface absolute inset-4 rounded-[1.75rem]" />
             <div className="relative z-10">
