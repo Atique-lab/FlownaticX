@@ -417,15 +417,21 @@ h1, h2, h3, h4, h5, h6 {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.1), transparent 30%),
-    radial-gradient(circle at 85% 20%, rgba(168, 85, 247, 0.12), transparent 30%),
-    radial-gradient(circle at 50% 80%, rgba(52, 211, 153, 0.06), transparent 40%),
+    radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.15), transparent 35%),
+    radial-gradient(circle at 85% 20%, rgba(168, 85, 247, 0.15), transparent 35%),
+    radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.12), transparent 45%),
     linear-gradient(180deg, #020617 0%, #030712 45%, #000000 100%);
+  animation: bgPulse 15s ease-in-out infinite alternate;
 }
 
 /* ───────────────────────────────────────────
    ANIMATIONS
    ─────────────────────────────────────────── */
+@keyframes bgPulse {
+  0% { transform: scale(1); filter: hue-rotate(0deg); }
+  100% { transform: scale(1.05); filter: hue-rotate(15deg); }
+}
+
 @keyframes gradientShift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

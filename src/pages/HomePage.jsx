@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   HiOutlinePaintBrush,
@@ -158,6 +158,16 @@ const testimonials = [
 
 export default function HomePage() {
   const [wordIndex, setWordIndex] = useState(0);
+  const heroRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
 
   useEffect(() => {
     const timer = setInterval(
@@ -174,36 +184,34 @@ export default function HomePage() {
         description="FlownaticX helps Institutes, Restaurants, Gyms & Local Businesses get more customers with premium design, automation, and high-converting websites."
       />
       {/* ══════════ HERO ══════════ */}
-      <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 pt-28 pb-20 text-center">
+      <section ref={heroRef} className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 pt-28 pb-20 text-center">
         <div className="hero-gradient absolute inset-0 opacity-90" />
         <div className="soft-grid" />
-        <div className="absolute left-[6%] top-[16%] h-[24rem] w-[24rem] rounded-full bg-cyan-400/8 blur-[100px]" />
-        <div className="absolute right-[8%] top-[14%] h-[20rem] w-[20rem] rounded-full bg-violet-500/10 blur-[100px]" />
+        
+        {/* Animated glowing orbs for GenZ vibe */}
+        <motion.div 
+          animate={{ x: [0, 30, -20, 0], y: [0, -40, 20, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-[10%] top-[20%] h-[30rem] w-[30rem] rounded-full bg-cyan-500/20 blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, -40, 30, 0], y: [0, 30, -30, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute right-[10%] top-[30%] h-[28rem] w-[28rem] rounded-full bg-violet-500/20 blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, 20, -40, 0], y: [0, 40, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-[40%] bottom-[10%] h-[25rem] w-[25rem] rounded-full bg-pink-500/15 blur-[120px]" 
+        />
 
         <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          style={{ y: textY, opacity, scale }}
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, ease: premiumEase }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 max-w-5xl"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="mb-8 flex flex-wrap justify-center gap-3"
-          >
-            <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-cyan-400 backdrop-blur-md">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500"></span>
-              </span>
-              Verified Growth Agency
-            </span>
-            <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 backdrop-blur-md">
-              <HiOutlineStar className="text-sm" />
-              5-Star Client Rating
-            </span>
-          </motion.div>
 
           <h1
             className="text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl md:text-7xl lg:text-8xl"
@@ -257,32 +265,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          {/* Trusted By Bar */}
-          {/* Trusted By Bar */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
-            transition={{ delay: 0.8 }}
-            className="mt-20 flex flex-col items-center gap-6"
-          >
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-              TRUSTED BY LEADERS IN LOCAL BUSINESS
-            </p>
-            <div className="flex flex-wrap justify-center gap-x-12 gap-y-6 grayscale transition-all hover:grayscale-0">
-              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
-                <div className="h-6 w-6 rounded bg-white/10" /> SAHAR
-              </div>
-              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
-                <div className="h-6 w-6 rounded bg-white/10" /> JAWAHAR
-              </div>
-              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
-                <div className="h-6 w-6 rounded bg-white/10" /> FITZONE
-              </div>
-              <div className="flex items-center gap-2 font-black text-white text-lg tracking-tighter">
-                <div className="h-6 w-6 rounded bg-white/10" /> EDUFLOW
-              </div>
-            </div>
-          </motion.div>
+          {/* Removed Trusted By Bar */}
 
           <motion.div
             initial={{ opacity: 0 }}

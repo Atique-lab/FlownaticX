@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import CursorGlow from "./components/CursorGlow";
 import Navbar from "./components/Navbar";
@@ -28,6 +28,28 @@ function PageLoader() {
 }
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading GenZ vibe
+    const timer = setTimeout(() => setLoading(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white">
+        <div className="relative flex h-24 w-24 items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-t-4 border-cyan-400 opacity-70 animate-spin" />
+          <div className="absolute inset-2 rounded-full border-r-4 border-violet-500 opacity-70 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+          <div className="absolute inset-4 rounded-full border-b-4 border-pink-500 opacity-70 animate-spin" style={{ animationDuration: "2s" }} />
+          <span className="font-black text-xl heading-gradient" style={{ fontFamily: "var(--font-heading)" }}>FX</span>
+        </div>
+        <p className="mt-8 font-bold tracking-widest text-sm uppercase text-slate-400 animate-pulse">Entering the Flow...</p>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <div className="app-shell">

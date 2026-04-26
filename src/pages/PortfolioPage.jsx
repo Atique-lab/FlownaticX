@@ -70,6 +70,15 @@ const items = [
   },
   // ─── Landing Pages & Websites ───
   {
+    img: p1,
+    title: "Premium SaaS Design",
+    client: "Figma Prototype",
+    cat: "web",
+    type: "UX/UI Design",
+    desc: "A sleek, modern interface design prototype demonstrating premium layout structures.",
+    link: "https://race-ocean-28642027.figma.site/",
+  },
+  {
     img: saharImg,
     title: "Sahar Institute Landing Page",
     client: "Sahar Institute",
@@ -308,7 +317,7 @@ export default function PortfolioPage() {
                 initial={{ scale: 0.965, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.38, ease: premiumEase }}
-                className="max-h-[60vh] w-full rounded-[1.5rem] object-cover"
+                className="max-h-[75vh] w-full rounded-[1.5rem] object-contain"
               />
 
               <div className="mt-5 flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:text-left">

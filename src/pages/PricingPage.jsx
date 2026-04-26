@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HiOutlinePaintBrush,
@@ -315,14 +315,6 @@ const categories = [
 
 export default function PricingPage() {
   const [activeTab, setActiveTab] = useState(0);
-  const [currency, setCurrency] = useState(() => {
-    return localStorage.getItem("flownaticx_currency") || "INR";
-  });
-
-  useEffect(() => {
-    localStorage.setItem("flownaticx_currency", currency);
-  }, [currency]);
-
   const activeCat = categories[activeTab] || categories[0];
 
   return (
@@ -362,27 +354,6 @@ export default function PricingPage() {
             for a custom bundle.
           </p>
 
-          {/* Currency Toggle */}
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <span className={`text-sm font-medium ${currency === "INR" ? "text-white" : "text-slate-500"}`}>
-              INR (₹)
-            </span>
-            <button
-              type="button"
-              onClick={() => setCurrency((c) => (c === "INR" ? "USD" : "INR"))}
-              className="relative h-7 w-12 rounded-full bg-white/10 border border-white/10 transition hover:bg-white/15"
-              aria-label="Toggle currency"
-            >
-              <motion.div
-                className="absolute top-0.5 h-6 w-6 rounded-full bg-gradient-to-r from-cyan-400 to-violet-500"
-                animate={{ left: currency === "INR" ? "2px" : "22px" }}
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
-            </button>
-            <span className={`text-sm font-medium ${currency === "USD" ? "text-white" : "text-slate-500"}`}>
-              USD ($)
-            </span>
-          </div>
         </motion.div>
       </section>
 
@@ -421,17 +392,6 @@ export default function PricingPage() {
       {/* Pricing Cards */}
       <section className="py-[var(--section-padding)]">
         <div className="container-section">
-          {/* Urgency Banner */}
-          <motion.div
-            key={activeCat.urgency}
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mx-auto mb-8 flex max-w-xl items-center justify-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/8 px-5 py-2.5 text-sm text-amber-300"
-          >
-            <HiOutlineFire className="shrink-0 text-base text-amber-400" />
-            <span>{activeCat.urgency}</span>
-          </motion.div>
-
           {/* Billing note */}
           <p className="mb-10 text-center text-sm text-slate-500">
             All {activeCat.label} plans are billed{" "}
@@ -443,7 +403,7 @@ export default function PricingPage() {
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={`${activeCat?.id || activeTab}-${currency}`}
+              key={activeCat?.id || activeTab}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -451,12 +411,12 @@ export default function PricingPage() {
             >
               <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="grid gap-6 lg:grid-cols-3">
                 {activeCat?.plans?.map((plan) => {
-                  const price = currency === "INR" ? plan.priceINR : plan.priceUSD;
-                  const original = currency === "INR" ? plan.originalINR : plan.originalUSD;
-                  const symbol = currency === "INR" ? "₹" : "$";
+                  const price = plan.priceINR;
+                  const original = plan.originalINR;
+                  const symbol = "₹";
 
                   const saveVal = parseInt(original?.replace(/,/g, "") || "0") - parseInt(price?.replace(/,/g, "") || "0");
-                  const saveFormatted = currency === "INR" ? saveVal.toLocaleString("en-IN") : saveVal.toLocaleString("en-US");
+                  const saveFormatted = saveVal.toLocaleString("en-IN");
 
                   return (
                     <motion.div key={plan.name} variants={cardVariant}>
