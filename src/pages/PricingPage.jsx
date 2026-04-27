@@ -19,7 +19,6 @@ import {
   cardVariant,
   premiumEase,
   staggerContainer,
-  viewportOnce,
 } from "../components/revealVariants";
 import SEO from "../components/SEO";
 

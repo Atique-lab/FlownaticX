@@ -60,7 +60,7 @@ async function handler(req, res) {
       const validatedData = taskUpdateSchema.parse(req.body);
       const { id, status, title, description, priority, due_date } = validatedData;
 
-      const completed_at = status === "completed" ? new Date().toISOString() : null;
+
 
       await sql`
         UPDATE tasks 

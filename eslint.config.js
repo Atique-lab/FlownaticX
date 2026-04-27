@@ -27,7 +27,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['api/**/*.js'],
+    files: ['api/**/*.js', 'playwright.config.js', 'vite.config.js', 'postcss.config.js', 'tailwind.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,

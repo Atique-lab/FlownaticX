@@ -233,6 +233,7 @@ export default function AdminDashboard() {
 
         {/* Drawers & Modals */}
         <LeadDetailDrawer 
+          key={selectedLead?.id}
           lead={selectedLead} 
           onClose={() => setSelectedLead(null)} 
           onUpdate={(id, updates) => updateLeadMutation.mutate({ id, ...updates })} 

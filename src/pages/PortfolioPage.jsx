@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   HiOutlinePaintBrush,
   HiOutlineBolt,
@@ -13,15 +13,11 @@ import ScrollReveal from "../components/ScrollReveal";
 import { premiumEase } from "../components/revealVariants";
 import SEO from "../components/SEO";
 
-import p1 from "../assets/projects/project1.jpg";
-import p2 from "../assets/projects/project2.jpg";
 import p3 from "../assets/projects/project3.jpg";
 import p4 from "../assets/projects/project4.jpg";
 import p5 from "../assets/projects/project5.jpg";
 import p6 from "../assets/projects/project6.jpg";
 import p7 from "../assets/projects/project7.jpg";
-import saharImg from "../assets/projects/sahar_institute.png";
-import jawaharImg from "../assets/projects/jawahar_hotel.png";
 
 const serviceTabs = [
   { id: "all", label: "All Work", icon: null },
@@ -133,10 +129,11 @@ export default function PortfolioPage() {
   const modalRef = useRef(null);
   const cardRefs = useRef([]);
 
-  const filtered =
-    activeFilter === "all"
+  const filtered = useMemo(() => {
+    return activeFilter === "all"
       ? items
       : items.filter((item) => item.cat === activeFilter);
+  }, [activeFilter]);
 
   const openPopup = (index) => {
     const item = filtered[index];
@@ -148,7 +145,7 @@ export default function PortfolioPage() {
     setCurrentIndex(index);
   };
 
-  const closePopup = () => setCurrentIndex(null);
+  const closePopup = useCallback(() => setCurrentIndex(null), []);
   const nextSlide = useCallback(() => setCurrentIndex((prev) => (prev + 1) % filtered.length), [filtered.length]);
   const prevSlide = useCallback(() => setCurrentIndex((prev) => (prev === 0 ? filtered.length - 1 : prev - 1)), [filtered.length]);
 
@@ -165,7 +162,7 @@ export default function PortfolioPage() {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [currentIndex, lastFocusedIndex, filtered.length, nextSlide, prevSlide]);
+  }, [currentIndex, lastFocusedIndex, closePopup, nextSlide, prevSlide]);
 
   const getCatColor = (cat) => {
     if (cat === "design") return "text-pink-400 bg-pink-500/10";

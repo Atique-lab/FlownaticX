@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   HiOutlineFunnel, 
@@ -209,15 +209,8 @@ export function LeadsSection({ leads, services, onView, onExport, onImport, onBu
 }
 
 export function LeadDetailDrawer({ lead, onClose, onUpdate, onOnboard, STATUS_CONFIG }) {
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(lead?.notes || "");
   const [onboardData, setOnboardData] = useState({ project_value: 0, amount_paid: 0 });
-
-  useEffect(() => {
-    if (lead) {
-      setNotes(lead.notes || "");
-      setOnboardData({ project_value: 0, amount_paid: 0 });
-    }
-  }, [lead]);
 
   if (!lead) return null;
 

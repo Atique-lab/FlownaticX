@@ -1,10 +1,5 @@
 import React from "react";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from "../../lib/utils";
 
 export function Button({ className, variant = "primary", size = "md", children, ...props }) {
   const variants = {

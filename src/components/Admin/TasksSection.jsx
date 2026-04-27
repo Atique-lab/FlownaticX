@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-export function TasksSection({ tasks, clients, onRefresh }) {
+export function TasksSection({ tasks, onRefresh }) {
   const groups = {
     pending: tasks.filter(t => t.status === 'pending'),
     ongoing: tasks.filter(t => t.status === 'ongoing'),

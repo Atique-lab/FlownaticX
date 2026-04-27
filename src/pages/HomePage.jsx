@@ -168,7 +168,7 @@ export default function HomePage() {
 
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
+
 
   useEffect(() => {
     const timer = setInterval(
