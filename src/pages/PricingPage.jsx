@@ -493,17 +493,13 @@ export default function PricingPage() {
                           )}
 
                           {/* CTA */}
-                          <a
-                            href={`https://wa.me/918799783853?text=${encodeURIComponent(
-                              `Hi FlownaticX! I'm interested in the ${plan.name} plan for ${activeCat.label}.\n\n💰 Price: ${symbol}${price}${plan.period}\n🛠 Service: ${activeCat.label}\n\nPlease share the next steps for onboarding.`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <Link
+                            to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
                             className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
                           >
-                            Select {plan.name} Plan
+                            Select Plan
                             <HiOutlineArrowRight className="text-xs" />
-                          </a>
+                          </Link>
                         </div>
                       </TiltCard>
                     </motion.div>
@@ -525,16 +521,13 @@ export default function PricingPage() {
             <p className="mt-4 text-slate-400">
               Every business is different. We'll create a custom bundle combining Design + Automation + Web Development tailored exactly to your needs and budget.
             </p>
-            <a
-              href="https://wa.me/918799783853"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/contact?service=Premium Bundle"
               className="btn-primary mt-8 inline-flex items-center gap-2 px-8 py-3"
             >
-              <SiWhatsapp />
               Build Your Custom Plan
               <HiOutlineArrowRight />
-            </a>
+            </Link>
           </div>
         </section>
       </ScrollReveal>
