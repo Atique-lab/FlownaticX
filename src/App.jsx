@@ -1,8 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
-import Lenis from "@studio-freight/lenis";
 import CursorGlow from "./components/CursorGlow";
-import ScrollProgress from "./components/ScrollProgress";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import FloatingCTA from "./components/FloatingCTA";
@@ -29,36 +27,13 @@ function PageLoader() {
   );
 }
 
-
 export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      gestureOrientation: "vertical",
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
-      infinite: false,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
     // Simulate initial loading GenZ vibe
     const timer = setTimeout(() => setLoading(false), 1800);
-    return () => {
-      clearTimeout(timer);
-      lenis.destroy();
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
@@ -79,7 +54,6 @@ export default function App() {
     <ErrorBoundary>
       <div className="app-shell">
       <div className="page-gradient" />
-      <ScrollProgress />
       <CursorGlow />
       <Navbar />
 
