@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,13 +19,9 @@ import {
   cardVariant,
   premiumEase,
   staggerContainer,
+  viewportOnce,
 } from "../components/revealVariants";
-import TiltCard from "../components/TiltCard";
 import SEO from "../components/SEO";
-
-/* ════════════════════════════════════════════
-   PRICING DATA
-   ════════════════════════════════════════════ */
 
 const categories = [
   {
@@ -148,63 +144,58 @@ const categories = [
           "CRM Integration",
           "Follow-up Sequences",
           "Custom Integrations",
-          "Dedicated Account Manager",
         ],
         cta: "Get Started",
         ctaStyle: "btn-primary",
       },
       {
         name: "Professional",
-        priceINR: "14,999",
-        priceUSD: "179",
+        priceINR: "15,999",
+        priceUSD: "189",
         period: "/mo",
-        originalINR: "21,999",
-        originalUSD: "259",
+        originalINR: "23,999",
+        originalUSD: "285",
         popular: true,
-        desc: "AI-powered calling + multi-channel capture for serious growth.",
-        badge: "Most Popular",
+        desc: "The complete lead machine for high-volume businesses.",
+        badge: "Highly Recommended",
         features: [
-          "Multi-Channel Lead Capture",
-          "Smart Auto-Reply System",
-          "WhatsApp + SMS Alerts",
-          "AI Calling Agent (100 calls/mo)",
+          "Unlimited Lead Forms",
+          "Advanced Chatbot System",
+          "WhatsApp + Email Alerts",
+          "AI Calling Agent (Lite)",
           "CRM Integration",
-          "Up to 2,000 Contacts",
-          "Automated Follow-up Sequences",
-          "Weekly Performance Reports",
-          "Priority Support",
+          "Automatic Follow-ups (3 days)",
+          "Weekly Analytics Call",
+          "Priority Technical Support",
         ],
         excluded: [
-          "Unlimited Calls",
-          "Custom Integrations",
-          "Dedicated Account Manager",
+          "Full AI Voice Suite",
+          "Custom API Integrations",
         ],
-        cta: "Start Automating",
+        cta: "Automate Now",
         ctaStyle: "btn-accent",
       },
       {
-        name: "Scale",
-        priceINR: "24,999",
-        priceUSD: "299",
+        name: "Ultimate",
+        priceINR: "29,999",
+        priceUSD: "359",
         period: "/mo",
-        originalINR: "39,999",
-        originalUSD: "479",
-        desc: "Enterprise-grade automation. Unlimited AI. Maximum conversions.",
-        badge: "Best Value",
+        originalINR: "44,999",
+        originalUSD: "539",
+        desc: "Full AI takeover of your sales and operations workflow.",
+        badge: "Total Scaling",
         features: [
-          "Enterprise Lead Capturing",
-          "AI-Powered Smart Replies",
-          "Omnichannel Alert System",
-          "AI Calling Agent (Unlimited)",
-          "Custom CRM Dashboard",
-          "Unlimited Contacts",
-          "Advanced Follow-up Sequences",
-          "Custom Integrations",
-          "Dedicated Account Manager",
-          "Real-time Analytics Dashboard",
+          "Everything in Professional",
+          "Full AI Voice Calling Suite",
+          "Custom API & ERP Integrations",
+          "30-Day Follow-up Sequences",
+          "Competitor Lead Scraper",
+          "Automated Content Repurposing",
+          "Dedicated Systems Engineer",
+          "VIP 1-on-1 Strategy Monthly",
         ],
         excluded: [],
-        cta: "Contact Us",
+        cta: "Scale with AI",
         ctaStyle: "btn-primary",
       },
     ],
@@ -213,90 +204,78 @@ const categories = [
     id: "web",
     label: "Web Development",
     icon: HiOutlineGlobeAlt,
-    billingNote: "one-time payment",
-    urgency: "Book this week — get free 1-month maintenance worth ₹5,000",
+    billingNote: "per project",
+    urgency: "Delivery in 7-14 days — Secure your slot now",
     plans: [
       {
         name: "Landing Page",
         priceINR: "14,999",
         priceUSD: "179",
-        period: " one-time",
+        period: "/page",
         originalINR: "19,999",
         originalUSD: "239",
-        desc: "A high-converting single-page site perfect for ad traffic.",
+        desc: "High-converting single page designed specifically for ads.",
         badge: null,
         features: [
-          "Single Page Design",
+          "Modern One-Page Design",
           "Mobile Responsive",
-          "Contact / Lead Form",
-          "WhatsApp Chat Widget",
+          "Contact Form Integration",
+          "Speed Optimized (90+ Score)",
           "Basic SEO Setup",
-          "1 GB Storage",
-          "Up to 10K Monthly Visitors",
-          "30-Day Support",
-          "2 Revisions",
+          "Copywriting Assistance",
+          "3 Days Delivery",
         ],
         excluded: [
-          "Blog / CMS",
+          "Multiple Pages",
           "Admin Dashboard",
-          "User Authentication",
-          "Database & API",
-          "Payment Integration",
+          "Database Integration",
+          "Advanced Animations",
         ],
-        note: "Domain & Hosting not included",
-        cta: "Get Started",
+        cta: "Start Building",
         ctaStyle: "btn-primary",
       },
       {
         name: "Business Website",
-        priceINR: "34,999",
-        priceUSD: "419",
-        period: " one-time",
-        originalINR: "49,999",
-        originalUSD: "599",
+        priceINR: "29,999",
+        priceUSD: "359",
+        period: "/site",
+        originalINR: "44,999",
+        originalUSD: "539",
         popular: true,
-        desc: "Multi-page site with CMS, blog, and admin dashboard.",
-        badge: "Most Popular",
+        desc: "Full professional website for established companies.",
+        badge: "Business Choice",
         features: [
-          "Up to 5 Pages",
-          "Mobile Responsive",
-          "Admin Dashboard",
-          "Blog / CMS System",
-          "Gallery & Portfolio Section",
-          "Advanced SEO Optimization",
-          "5 GB Storage",
-          "Up to 50K Monthly Visitors",
-          "Google Analytics Integration",
-          "90-Day Support",
-          "5 Revisions",
+          "Up to 5 Premium Pages",
+          "Dynamic Contact System",
+          "Lead Management Dashboard",
+          "Advanced UI/UX Design",
+          "Full SEO Optimization",
+          "CMS Integration (Optional)",
+          "10 Days Delivery",
+          "1-Month Maintenance",
         ],
         excluded: [
-          "User Authentication",
-          "Database & API",
-          "Payment Integration",
+          "E-commerce Functionality",
+          "Complex Web App Logic",
         ],
-        note: "Domain & Hosting not included",
-        cta: "Start Building",
+        cta: "Get Professional",
         ctaStyle: "btn-accent",
       },
       {
-        name: "Full-Stack Web App",
-        priceINR: "74,999",
-        priceUSD: "899",
-        period: "+",
-        originalINR: "99,999",
-        originalUSD: "1,199",
-        desc: "Custom-built app for complex requirements. Your vision, our code.",
-        badge: "Best Value",
+        name: "Custom Web App",
+        priceINR: "59,999",
+        priceUSD: "719",
+        period: "/start",
+        originalINR: "89,999",
+        originalUSD: "1079",
+        desc: "Complex full-stack applications with custom functionality.",
+        badge: "Expert Level",
         features: [
-          "Unlimited Pages",
-          "Custom UI/UX Design",
-          "User Authentication & Roles",
-          "Database + REST / GraphQL API",
-          "Payment Gateway Integration",
-          "20 GB Storage (Scalable)",
-          "Unlimited Traffic (Scalable)",
-          "Real-time Features",
+          "Custom Full-Stack Build",
+          "Private Admin Dashboard",
+          "Database & User Auth",
+          "Advanced API Integrations",
+          "Interactive Charts & Tools",
           "Performance Monitoring",
           "6-Month Support",
           "Unlimited Revisions",
@@ -314,7 +293,6 @@ const categories = [
 /* ════════════════════════════════════════════ */
 
 export default function PricingPage() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const activeCat = categories[activeTab] || categories[0];
 
@@ -374,13 +352,12 @@ export default function PricingPage() {
                 <span className="relative z-10 flex items-center gap-2">
                   <cat.icon className="text-base" />
                   <span className="hidden sm:inline">{cat.label}</span>
-                  <span className="sm:hidden">{cat.id === "web" ? "Web" : cat.label.split(" ")[0]}</span>
                 </span>
                 {activeTab === i && (
                   <motion.div
-                    layoutId="pricing-tab"
-                    className="absolute inset-0 rounded-xl bg-white/8 border border-white/10"
-                    transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                    layoutId="activeTab"
+                    className="absolute inset-0 rounded-xl bg-white/5 border border-white/10"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
               </button>
@@ -389,15 +366,17 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Pricing Cards */}
-      <section className="py-[var(--section-padding)]">
+      {/* Main Pricing Grid */}
+      <section className="py-20">
         <div className="container-section">
-          {/* Billing note */}
-          <p className="mb-10 text-center text-sm text-slate-500">
-            All {activeCat.label} plans are billed{" "}
-            <span className="font-medium text-slate-300">{activeCat.billingNote}</span>.
-            {activeCat.id === "web" && (
-              <span className="ml-1 text-amber-400/80">Domain & Hosting not included.</span>
+          {/* Urgency/Billing Note */}
+          <p className="mb-12 text-center text-sm font-medium text-slate-500">
+            {activeCat.urgency} • Billing:{" "}
+            <span className="text-slate-300">{activeCat.billingNote}</span>
+            {activeCat.billingNote === "per month" && (
+              <span className="ml-1.5 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-400">
+                Cancel Anytime
+              </span>
             )}
           </p>
 
@@ -418,90 +397,89 @@ export default function PricingPage() {
                   const saveVal = parseInt(original?.replace(/,/g, "") || "0") - parseInt(price?.replace(/,/g, "") || "0");
                   const saveFormatted = saveVal.toLocaleString("en-IN");
 
-                    return (
-                      <motion.div key={plan.name} variants={cardVariant}>
-                        <div
-                          className={`glass-panel premium-surface premium-card-hover relative flex h-full flex-col rounded-[var(--radius-card)] p-7 ${
-                            plan.popular ? "animated-border popular-glow" : ""
-                          }`}
-                        >
-                          {/* Badge */}
-                          {plan.badge && (
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                              <span
-                                className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-2xl ${
-                                  plan.popular
-                                    ? "bg-gradient-to-r from-cyan-400 to-violet-500 text-white shadow-cyan-500/40 ring-4 ring-cyan-500/10"
-                                    : "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-amber-500/40 ring-4 ring-amber-500/10"
-                                }`}
-                              >
-                                {plan.popular ? <HiOutlineFire className="text-sm" /> : <HiOutlineStar className="text-sm" />}
-                                {plan.badge}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Plan Name */}
-                          <h3 className="text-lg font-semibold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                            {plan.name}
-                          </h3>
-                          <p className="mt-1 text-xs text-slate-500">{plan.desc}</p>
-
-                          {/* Price */}
-                          <div className="mt-5">
-                            {/* Crossed out original */}
-                            <p className="text-sm text-slate-500 line-through">
-                              {symbol}{original}{plan.period}
-                            </p>
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-                                {symbol}{price}
-                              </span>
-                              <span className="text-sm text-slate-500">{plan.period}</span>
-                            </div>
-                            <p className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
-                              <HiOutlineFire className="text-sm" />
-                              Save {symbol}{saveFormatted}
-                            </p>
+                  return (
+                    <motion.div key={plan.name} variants={cardVariant}>
+                      <div
+                        className={`glass-panel premium-surface premium-card-hover relative flex h-full flex-col rounded-[var(--radius-card)] p-7 ${
+                          plan.popular ? "animated-border popular-glow" : ""
+                        }`}
+                      >
+                        {/* Badge */}
+                        {plan.badge && (
+                          <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                            <span
+                              className={`flex items-center gap-1.5 rounded-full px-5 py-1.5 text-[10px] font-black uppercase tracking-widest shadow-2xl ${
+                                plan.popular
+                                  ? "bg-gradient-to-r from-cyan-400 to-violet-500 text-white shadow-cyan-500/40 ring-4 ring-cyan-500/10"
+                                  : "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-amber-500/40 ring-4 ring-amber-500/10"
+                              }`}
+                            >
+                              {plan.popular ? <HiOutlineFire className="text-sm" /> : <HiOutlineStar className="text-sm" />}
+                              {plan.badge}
+                            </span>
                           </div>
+                        )}
 
-                          {/* Divider */}
-                          <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        {/* Plan Name */}
+                        <h3 className="text-lg font-semibold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+                          {plan.name}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-500">{plan.desc}</p>
 
-                          {/* Features */}
-                          <ul className="flex-1 space-y-2.5">
-                            {plan.features.map((f) => (
-                              <li key={f} className="flex items-start gap-2.5 text-sm">
-                                <HiOutlineCheck className="mt-0.5 shrink-0 text-base text-emerald-400" />
-                                <span className="text-slate-300">{f}</span>
-                              </li>
-                            ))}
-                            {plan.excluded.map((f) => (
-                              <li key={f} className="flex items-start gap-2.5 text-sm">
-                                <HiOutlineXMark className="mt-0.5 shrink-0 text-base text-slate-600" />
-                                <span className="text-slate-600">{f}</span>
-                              </li>
-                            ))}
-                          </ul>
-
-                          {/* Note */}
-                          {plan.note && (
-                            <p className="mt-4 flex items-center gap-1.5 rounded-lg bg-amber-500/8 px-3 py-2 text-xs text-amber-400/80">
-                              <HiOutlineExclamationTriangle className="shrink-0 text-sm" />
-                              {plan.note}
-                            </p>
-                          )}
-
-                          {/* CTA */}
-                          <Link
-                            to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
-                            className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-all relative z-[999] cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
-                          >
-                            Select Plan
-                            <HiOutlineArrowRight className="text-xs" />
-                          </Link>
+                        {/* Price */}
+                        <div className="mt-5">
+                          {/* Crossed out original */}
+                          <p className="text-sm text-slate-500 line-through">
+                            {symbol}{original}{plan.period}
+                          </p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-4xl font-extrabold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+                              {symbol}{price}
+                            </span>
+                            <span className="text-sm text-slate-500">{plan.period}</span>
+                          </div>
+                          <p className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
+                            <HiOutlineFire className="text-sm" />
+                            Save {symbol}{saveFormatted}
+                          </p>
                         </div>
-                      </motion.div>
+
+                        {/* Divider */}
+                        <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                        {/* Features */}
+                        <ul className="flex-1 space-y-2.5">
+                          {plan.features.map((f) => (
+                            <li key={f} className="flex items-start gap-2.5 text-sm">
+                              <HiOutlineCheck className="mt-0.5 shrink-0 text-base text-emerald-400" />
+                              <span className="text-slate-300">{f}</span>
+                            </li>
+                          ))}
+                          {plan.excluded.map((f) => (
+                            <li key={f} className="flex items-start gap-2.5 text-sm">
+                              <HiOutlineXMark className="mt-0.5 shrink-0 text-base text-slate-600" />
+                              <span className="text-slate-600">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* Note */}
+                        {plan.note && (
+                          <p className="mt-4 flex items-center gap-1.5 rounded-lg bg-amber-500/8 px-3 py-2 text-xs text-amber-400/80">
+                            <HiOutlineExclamationTriangle className="shrink-0 text-sm" />
+                            {plan.note}
+                          </p>
+                        )}
+
+                        {/* CTA */}
+                        <Link
+                          to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
+                          className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-all relative z-[999] cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
+                        >
+                          Select Plan
+                          <HiOutlineArrowRight className="text-xs" />
+                        </Link>
+                      </div>
                     </motion.div>
                   );
                 })}
