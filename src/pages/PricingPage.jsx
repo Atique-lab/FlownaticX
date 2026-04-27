@@ -418,9 +418,8 @@ export default function PricingPage() {
                   const saveVal = parseInt(original?.replace(/,/g, "") || "0") - parseInt(price?.replace(/,/g, "") || "0");
                   const saveFormatted = saveVal.toLocaleString("en-IN");
 
-                  return (
-                    <motion.div key={plan.name} variants={cardVariant}>
-                      <TiltCard>
+                    return (
+                      <motion.div key={plan.name} variants={cardVariant}>
                         <div
                           className={`glass-panel premium-surface premium-card-hover relative flex h-full flex-col rounded-[var(--radius-card)] p-7 ${
                             plan.popular ? "animated-border popular-glow" : ""
@@ -494,15 +493,15 @@ export default function PricingPage() {
                           )}
 
                           {/* CTA */}
-                          <button
-                            onClick={() => navigate(`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`)}
-                            className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-all relative z-10 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
+                          <Link
+                            to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
+                            className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-all relative z-[999] cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
                           >
                             Select Plan
                             <HiOutlineArrowRight className="text-xs" />
-                          </button>
+                          </Link>
                         </div>
-                      </TiltCard>
+                      </motion.div>
                     </motion.div>
                   );
                 })}
