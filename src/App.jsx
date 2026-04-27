@@ -1,11 +1,13 @@
 import { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
+import { motion } from "framer-motion";
 import CursorGlow from "./components/CursorGlow";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import FloatingCTA from "./components/FloatingCTA";
 import ErrorBoundary from "./components/ErrorBoundary";
 import HomePage from "./pages/HomePage";
+import PremiumLoader from "./components/PremiumLoader";
 
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
@@ -21,8 +23,12 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function PageLoader() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 rounded-full border-2 border-cyan-400 border-t-transparent" style={{ animation: "spin 0.8s linear infinite" }} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="h-10 w-10 rounded-full border-2 border-cyan-500/20 border-t-cyan-500"
+      />
     </div>
   );
 }
@@ -31,23 +37,13 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial loading GenZ vibe
-    const timer = setTimeout(() => setLoading(false), 1800);
+    // Premium loading experience duration
+    const timer = setTimeout(() => setLoading(false), 2200);
     return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-white">
-        <div className="relative flex h-24 w-24 items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-t-4 border-cyan-400 opacity-70 animate-spin" />
-          <div className="absolute inset-2 rounded-full border-r-4 border-violet-500 opacity-70 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
-          <div className="absolute inset-4 rounded-full border-b-4 border-pink-500 opacity-70 animate-spin" style={{ animationDuration: "2s" }} />
-          <span className="font-black text-xl heading-gradient" style={{ fontFamily: "var(--font-heading)" }}>FX</span>
-        </div>
-        <p className="mt-8 font-bold tracking-widest text-sm uppercase text-slate-400 animate-pulse">Entering the Flow...</p>
-      </div>
-    );
+    return <PremiumLoader />;
   }
 
   return (
