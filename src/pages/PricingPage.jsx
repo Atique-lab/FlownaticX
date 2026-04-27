@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -314,6 +314,7 @@ const categories = [
 /* ════════════════════════════════════════════ */
 
 export default function PricingPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const activeCat = categories[activeTab] || categories[0];
 
@@ -493,13 +494,13 @@ export default function PricingPage() {
                           )}
 
                           {/* CTA */}
-                          <Link
-                            to={`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`}
-                            className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
+                          <button
+                            onClick={() => navigate(`/contact?service=${encodeURIComponent(activeCat.label)}&plan=${encodeURIComponent(plan.name)}`)}
+                            className={`mt-6 flex w-full items-center justify-center gap-2 py-4 text-center text-sm font-bold transition-all relative z-10 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${plan.ctaStyle}`}
                           >
                             Select Plan
                             <HiOutlineArrowRight className="text-xs" />
-                          </Link>
+                          </button>
                         </div>
                       </TiltCard>
                     </motion.div>
